@@ -140,8 +140,9 @@ class _SimpleTaskState extends LessonsBaseState<SimpleTask> {
     setState(() {
       lessons = demoLessons;
       isLoaded = true;
-      loadLesson(0);
     });
+    // Load first lesson after state is updated
+    loadLesson(0);
   }
 
   @override
@@ -183,18 +184,7 @@ class _SimpleTaskState extends LessonsBaseState<SimpleTask> {
                 _buildPill(skillType),
               ],
             ),
-            if (embeddedMetadata?.subtitle?.isNotEmpty ?? false) ...[
-              SizedBox(height: isCompact ? 8 : 12),
-              ScalableText(
-                embeddedMetadata!.subtitle!,
-                style: AppTextStyles.bodyMedium(
-                  context,
-                ).copyWith(color: AppColors.subtleText),
-                maxFontSize: 18,
-                minFontSize: 12,
-                textAlign: TextAlign.left,
-              ),
-            ],
+
             SizedBox(height: isCompact ? 8 : 12),
             ScalableText(
               'Select the correct word',

@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:lesson_base_arignar/embedded/embedded_bridge.dart';
 import 'package:lesson_base_arignar/screens/tasks/simple_task.dart';
 import 'package:lesson_base_arignar/theme/app_colors.dart';
 import 'package:lesson_base_arignar/theme/app_text_styles.dart';
 import 'package:lesson_base_arignar/widgets/density/scalable_text.dart';
 
 void main() {
-  embeddedBridge.initialize();
   runApp(const LessonBaseApp());
 }
 
@@ -71,7 +69,7 @@ class SimpleTaskWrapper extends StatelessWidget {
               width: targetWidth,
               height: constraints.maxHeight,
               child: _EmbeddedAwareSimpleTask(
-                onReady: () => embeddedBridge.notifyReady(),
+                onReady: () {},
                 chapterID: 'chapter-001',
                 lessonID: 'lesson-001',
                 onLessonComplete: () =>
@@ -115,20 +113,7 @@ class _EmbeddedAwareSimpleTask extends StatefulWidget {
 }
 
 class _EmbeddedAwareSimpleTaskState extends State<_EmbeddedAwareSimpleTask> {
-  bool _sentReady = false;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (!_sentReady && embeddedBridge.isEmbedded) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          widget.onReady();
-          _sentReady = true;
-        }
-      });
-    }
-  }
+  final bool _sentReady = false;
 
   @override
   Widget build(BuildContext context) {

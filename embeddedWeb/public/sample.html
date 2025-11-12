@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <meta charset="UTF-8">
     <title>Arignar Launcher</title>
     <style>
       body {
@@ -39,6 +40,61 @@
       .top-header .user-info {
         color: white;
         font-size: 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+      }
+
+      .top-header .user-info .icon {
+        display: inline-block;
+        vertical-align: middle;
+      }
+
+      .top-header .user-info .icon.user-icon {
+        width: 18px;
+        height: 18px;
+        background: white;
+        border-radius: 50%;
+        position: relative;
+        flex-shrink: 0;
+      }
+
+      .top-header .user-info .icon.user-icon::before {
+        content: '';
+        position: absolute;
+        width: 8px;
+        height: 8px;
+        background: #ff9800;
+        border-radius: 50%;
+        top: 3px;
+        left: 5px;
+      }
+
+      .top-header .user-info .icon.user-icon::after {
+        content: '';
+        position: absolute;
+        width: 12px;
+        height: 6px;
+        border: 2px solid #ff9800;
+        border-top: none;
+        border-radius: 0 0 12px 12px;
+        bottom: 2px;
+        left: 3px;
+      }
+
+      .top-header .user-info .icon.arrow-down {
+        width: 0;
+        height: 0;
+        border-left: 5px solid transparent;
+        border-right: 5px solid transparent;
+        border-top: 6px solid white;
+        margin-left: 4px;
+        flex-shrink: 0;
+      }
+
+      .top-header .user-info:hover {
+        opacity: 0.9;
       }
 
       /* Content area with sidebar - account for bottom nav */
@@ -166,6 +222,62 @@
       .nav-btn.next {
         background: #ffc107;
         color: #333;
+      }
+
+      .nav-btn .icon {
+        display: block;
+      }
+
+      /* Home icon - CSS house shape */
+      .nav-btn.home .icon-home {
+        width: 14px;
+        height: 12px;
+        position: relative;
+        margin: 0 auto;
+      }
+
+      .nav-btn.home .icon-home::before {
+        content: '';
+        position: absolute;
+        width: 0;
+        height: 0;
+        border-left: 7px solid transparent;
+        border-right: 7px solid transparent;
+        border-bottom: 6px solid currentColor;
+        top: 0;
+        left: 0;
+      }
+
+      .nav-btn.home .icon-home::after {
+        content: '';
+        position: absolute;
+        width: 10px;
+        height: 8px;
+        border: 2px solid currentColor;
+        border-top: none;
+        border-radius: 0 0 2px 2px;
+        bottom: 0;
+        left: 2px;
+      }
+
+      /* Left arrow icon */
+      .nav-btn.prev .icon-prev {
+        width: 0;
+        height: 0;
+        border-top: 6px solid transparent;
+        border-bottom: 6px solid transparent;
+        border-right: 8px solid currentColor;
+        margin: 0 auto;
+      }
+
+      /* Right arrow icon */
+      .nav-btn.next .icon-next {
+        width: 0;
+        height: 0;
+        border-top: 6px solid transparent;
+        border-bottom: 6px solid transparent;
+        border-left: 8px solid currentColor;
+        margin: 0 auto;
       }
 
       /* Flutter iframe area */
@@ -405,7 +517,11 @@
         >
           ☰
         </button>
-        <div class="user-info" id="userInfo">Loading... ▼</div>
+        <div class="user-info" id="userInfo">
+          <span class="icon user-icon"></span>
+          <span class="user-text">Loading...</span>
+          <span class="icon arrow-down"></span>
+        </div>
       </header>
 
       <!-- Mobile sidebar overlay -->
@@ -467,17 +583,17 @@
             </h1>
             <div class="nav-controls">
               <button class="nav-btn home" onclick="goHome()" title="Home">
-                🏠
+                <span class="icon icon-home"></span>
               </button>
               <button
                 class="nav-btn prev"
                 onclick="previousContent()"
                 title="Previous"
               >
-                ‹
+                <span class="icon icon-prev"></span>
               </button>
               <button class="nav-btn next" onclick="nextContent()" title="Next">
-                ›
+                <span class="icon icon-next"></span>
               </button>
             </div>
           </div>
@@ -837,10 +953,14 @@
           headerTitle.textContent = `${level.ClassName} for Student`;
         }
 
-        // Update user info
+        // Update user info with icons
         const userInfo = document.getElementById("userInfo");
         if (userInfo) {
-          userInfo.textContent = `${level.ClassCode} (STUDENT) ▼`;
+          userInfo.innerHTML = `
+            <span class="icon user-icon"></span>
+            <span class="user-text">${level.ClassCode} (STUDENT)</span>
+            <span class="icon arrow-down"></span>
+          `;
         }
 
         // Update sidebar title

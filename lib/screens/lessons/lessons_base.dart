@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:lesson_base_arignar/embedded/embedded_bridge.dart';
 import 'package:lesson_base_arignar/layouts/lessons/layouts.dart';
 import 'package:lesson_base_arignar/theme/app_colors.dart';
 import 'package:lesson_base_arignar/widgets/density/scalable_text.dart';
@@ -26,15 +25,14 @@ abstract class LessonsBase extends StatefulWidget {
 abstract class LessonsBaseState<T extends LessonsBase> extends State<T> {
   String displayType = 'Words';
   String skillType = 'Reading';
-  List<Map<String, dynamic>> lessons = const [];
+  List<Map<String, dynamic>> lessons = [];
   Map<String, dynamic>? currentLesson;
-  List<String> wordsToDisplay = const [];
+  List<String> wordsToDisplay = [];
   bool isLoaded = false;
   bool? isCurrentAnswerCorrect;
   int? selectedOptionIndex;
   int? correctOptionIndex;
   int currentLessonIndex = 0;
-  EmbeddedLessonMetadata? embeddedMetadata;
   VoidCallback? _removeEmbeddedListener;
 
   @protected
@@ -111,23 +109,7 @@ abstract class LessonsBaseState<T extends LessonsBase> extends State<T> {
   }
 
   String get lessonTitle =>
-      embeddedMetadata?.title ??
-      currentLesson?['title'] ??
-      'Lesson ${widget.lessonID}';
-
-  @override
-  void initState() {
-    super.initState();
-    setDisplayType();
-    setSkillType();
-    setGamesLogic();
-    if (embeddedBridge.isEmbedded) {
-      embeddedBridge.initialize();
-      _removeEmbeddedListener = embeddedBridge.addLessonListener(
-        _handleEmbeddedLesson,
-      );
-    }
-  }
+      currentLesson?['title'] ?? 'Lesson ${widget.lessonID}';
 
   @override
   Widget build(BuildContext context) {
@@ -186,34 +168,53 @@ abstract class LessonsBaseState<T extends LessonsBase> extends State<T> {
     }
   }
 
-  @protected
-  void loadLesson(int index) {
-    if (lessons.isEmpty) return;
-    currentLessonIndex = index.clamp(0, lessons.length - 1);
-    final nextLesson = lessons[currentLessonIndex];
-    final options = (nextLesson['options'] as List<dynamic>? ?? const [])
-        .cast<String>();
-    final question = nextLesson['question'] ?? nextLesson['word'];
-    final correctIdx = nextLesson['correctIndex'] as int? ?? 0;
-
-    currentLesson = {...nextLesson, 'question': question, 'options': options};
-    wordsToDisplay = List<String>.from(options);
-    correctOptionIndex = correctIdx.clamp(0, options.length - 1);
-    selectedOptionIndex = null;
-    isCurrentAnswerCorrect = null;
+  @override
+  void initState() {
+    super.initState();
+    // Initialize display type and skill type
+    setDisplayType();
+    setSkillType();
+    // Load lessons data
+    setGamesLogic();
   }
 
-  void _handleEmbeddedLesson(EmbeddedLessonMetadata metadata) {
-    if (!mounted) return;
+  @protected
+  void loadLesson(int index) {
+    if (lessons.isEmpty) {
+      print('Warning: loadLesson called but lessons is empty');
+      return;
+    }
+
+    currentLessonIndex = index.clamp(0, lessons.length - 1);
+    final nextLesson = lessons[currentLessonIndex];
+
+    final options = (nextLesson['options'] as List<dynamic>? ?? <dynamic>[])
+        .map((e) => e.toString())
+        .toList();
+
+    if (options.isEmpty) {
+      print(
+        'Warning: No options found for lesson at index $currentLessonIndex',
+      );
+    }
+
+    final question =
+        nextLesson['question']?.toString() ??
+        nextLesson['word']?.toString() ??
+        '';
+    final correctIdx = (nextLesson['correctIndex'] as int?) ?? 0;
+
     setState(() {
-      embeddedMetadata = metadata;
-      if (lessons.isNotEmpty) {
-        loadLesson(currentLessonIndex);
-      }
-      if (currentLesson != null && (metadata.title?.isNotEmpty ?? false)) {
-        currentLesson = {...currentLesson!, 'title': metadata.title!};
-      }
+      currentLesson = {...nextLesson, 'question': question, 'options': options};
+      wordsToDisplay = List<String>.from(options);
+      correctOptionIndex = correctIdx.clamp(0, options.length - 1);
+      selectedOptionIndex = null;
+      isCurrentAnswerCorrect = null;
     });
+
+    print(
+      'Loaded lesson $currentLessonIndex: question="$question", options count=${options.length}',
+    );
   }
 
   @override
