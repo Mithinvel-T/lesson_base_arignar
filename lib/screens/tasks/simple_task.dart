@@ -154,16 +154,16 @@ class _SimpleTaskState extends LessonsBaseState<SimpleTask> {
     final questionLength = question.length;
     double maxFont;
     if (questionLength > 160) {
-      maxFont = isCompact ? 22 : 26;
+      maxFont = isCompact ? 16 : 18;
     } else if (questionLength > 110) {
-      maxFont = isCompact ? 25 : 30;
+      maxFont = isCompact ? 18 : 20;
     } else if (questionLength > 80) {
-      maxFont = isCompact ? 28 : 32;
+      maxFont = isCompact ? 20 : 22;
     } else {
-      maxFont = isCompact ? 30 : 34;
+      maxFont = isCompact ? 22 : 24;
     }
-    final double minFont = (maxFont - (isCompact ? 8 : 10)).clamp(
-      14.0,
+    final double minFont = (maxFont - (isCompact ? 6 : 8)).clamp(
+      12.0,
       maxFont.toDouble(),
     );
     return DecoratedBox(
@@ -171,9 +171,16 @@ class _SimpleTaskState extends LessonsBaseState<SimpleTask> {
         color: AppColors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.border),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.border.withOpacity(0.3),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Padding(
-        padding: EdgeInsets.all(isCompact ? 16 : 24),
+        padding: EdgeInsets.all(isCompact ? 12 : 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -185,7 +192,7 @@ class _SimpleTaskState extends LessonsBaseState<SimpleTask> {
               ],
             ),
 
-            SizedBox(height: isCompact ? 8 : 12),
+            SizedBox(height: isCompact ? 6 : 8),
             ScalableText(
               'Select the correct word',
               style: AppTextStyles.bodyMedium(
@@ -193,10 +200,10 @@ class _SimpleTaskState extends LessonsBaseState<SimpleTask> {
               ).copyWith(fontWeight: FontWeight.w600),
               textAlign: TextAlign.left,
               autoScale: true,
-              maxFontSize: isCompact ? 16 : 18,
-              minFontSize: isCompact ? 12 : 13,
+              maxFontSize: isCompact ? 13 : 14,
+              minFontSize: isCompact ? 11 : 12,
             ),
-            SizedBox(height: isCompact ? 4 : 6),
+            SizedBox(height: isCompact ? 3 : 4),
             ScalableText(
               question,
               style: AppTextStyles.headlineLarge(context),
@@ -218,15 +225,15 @@ class _SimpleTaskState extends LessonsBaseState<SimpleTask> {
         color: AppColors.primaryBlue.withOpacity(0.12),
         borderRadius: BorderRadius.circular(50),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
       child: ScalableText(
         label,
         style: AppTextStyles.bodyMedium(
           context,
         ).copyWith(color: AppColors.primaryBlue, fontWeight: FontWeight.w600),
         autoScale: true,
-        maxFontSize: 18,
-        minFontSize: 18,
+        maxFontSize: 14,
+        minFontSize: 14,
       ),
     );
   }
@@ -240,36 +247,21 @@ class _SimpleTaskState extends LessonsBaseState<SimpleTask> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final width = constraints.maxWidth;
-        final crossAxisCount = width < 380
-            ? 1
-            : width < 720
-            ? 2
-            : 4;
         final double crossAxisSpacing = width < 380 ? 8 : 10;
         final double mainAxisSpacing = width < 380 ? 8 : 10;
-        final double itemWidth =
-            (width - (crossAxisCount - 1) * crossAxisSpacing) / crossAxisCount;
 
-        // Calculate minimum height needed for text (3 lines max)
-        final double minOptionHeight = width < 380
-            ? 70.0
-            : width < 720
-            ? 80.0
-            : 90.0;
-        final double childAspectRatio = itemWidth / minOptionHeight;
-
-        return GridView.builder(
-          itemCount: wordsToDisplay.length,
-          physics: const NeverScrollableScrollPhysics(),
-          shrinkWrap: true,
-          padding: const EdgeInsets.symmetric(vertical: 4),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: crossAxisCount,
-            crossAxisSpacing: crossAxisSpacing,
-            mainAxisSpacing: mainAxisSpacing,
-            childAspectRatio: childAspectRatio,
-          ),
-          itemBuilder: (context, index) => getListofWords(index),
+        return Wrap(
+          spacing: crossAxisSpacing,
+          runSpacing: mainAxisSpacing,
+          children: wordsToDisplay.asMap().entries.map((entry) {
+            final index = entry.key;
+            final itemWidth = width < 380
+                ? width
+                : width < 720
+                ? (width - crossAxisSpacing) / 2
+                : (width - (crossAxisSpacing * 3)) / 4;
+            return SizedBox(width: itemWidth, child: getListofWords(index));
+          }).toList(),
         );
       },
     );
@@ -296,41 +288,42 @@ class _SimpleTaskState extends LessonsBaseState<SimpleTask> {
     return LayoutBuilder(
       builder: (context, itemConstraints) {
         final itemWidth = itemConstraints.maxWidth;
-        final itemHeight = itemConstraints.maxHeight.isFinite
-            ? itemConstraints.maxHeight
-            : 90.0;
         final fontSize = itemWidth < 120
-            ? 11.5
+            ? 13.0
             : itemWidth < 170
-            ? 12.0
-            : 12.5;
+            ? 14.0
+            : 17.0;
 
         return GestureDetector(
           onTap: () => verifyWords(index),
           child: Container(
-            constraints: BoxConstraints(
-              maxHeight: itemHeight,
-              maxWidth: itemWidth,
-              minHeight: 0,
-            ),
+            constraints: BoxConstraints(maxWidth: itemWidth, minHeight: 80),
             decoration: BoxDecoration(
               color: backgroundColor,
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: borderColor, width: 1.2),
+              boxShadow: [
+                BoxShadow(
+                  color: borderColor.withOpacity(0.2),
+                  blurRadius: 3,
+                  offset: const Offset(0, 1),
+                ),
+              ],
             ),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
                   word,
-                  style: AppTextStyles.bodyMedium(
-                    context,
-                  ).copyWith(fontSize: fontSize, height: 1.25),
+                  style: AppTextStyles.bodyMedium(context).copyWith(
+                    fontSize: fontSize,
+                    height: 1.7,
+                    fontWeight: FontWeight.w500,
+                  ),
                   textAlign: TextAlign.left,
                   softWrap: true,
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
+                  overflow: TextOverflow.visible,
                 ),
               ),
             ),

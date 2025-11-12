@@ -88,6 +88,17 @@ abstract class LessonsBaseState<T extends LessonsBase> extends State<T> {
                   ? AppColors.success.withOpacity(0.12)
                   : AppColors.error.withOpacity(0.12),
               borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color:
+                      (isCurrentAnswerCorrect!
+                              ? AppColors.success
+                              : AppColors.error)
+                          .withOpacity(0.15),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: Padding(
               padding: EdgeInsets.all(isCompact ? 10 : 12),

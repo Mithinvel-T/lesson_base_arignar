@@ -42,7 +42,7 @@ class AdaptiveLessonLayout extends StatelessWidget {
 
   Widget _buildHeader(BuildContext context, ResponsiveInfo info) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -53,20 +53,20 @@ class AdaptiveLessonLayout extends StatelessWidget {
                 ScalableText(
                   lessonTitle,
                   style: AppTextStyles.headlineMedium(context),
-                  maxFontSize: info.isDesktop ? 36 : 28,
-                  minFontSize: 18,
+                  maxFontSize: info.isDesktop ? 20 : 18,
+                  minFontSize: 16,
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 4),
                 ScalableText(
                   'Stay on track and complete the lesson at your own pace.',
                   style: AppTextStyles.bodyMedium(context),
-                  maxFontSize: 18,
-                  minFontSize: 13,
+                  maxFontSize: 13,
+                  minFontSize: 12,
                 ),
               ],
             ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 12),
           AppButton(label: 'Exit', onPressed: onExitPressed, expanded: false),
         ],
       ),
@@ -86,25 +86,25 @@ class AdaptiveLessonLayout extends StatelessWidget {
                 flex: 3,
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 24,
+                    horizontal: 18,
+                    vertical: 16,
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       questionCard,
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 12),
                       DecoratedBox(
                         decoration: BoxDecoration(
                           color: AppColors.white,
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Padding(
-                          padding: const EdgeInsets.all(20),
+                          padding: const EdgeInsets.all(16),
                           child: mainContent,
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 12),
                       _buildNavigationRow(context),
                     ],
                   ),
@@ -122,8 +122,8 @@ class AdaptiveLessonLayout extends StatelessWidget {
                 ),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 24,
+                    horizontal: 16,
+                    vertical: 16,
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -131,10 +131,10 @@ class AdaptiveLessonLayout extends StatelessWidget {
                       ScalableText(
                         'Progress',
                         style: AppTextStyles.titleMedium(context),
-                        maxFontSize: 24,
+                        maxFontSize: 18,
                         minFontSize: 16,
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 10),
                       Expanded(child: progressContent),
                     ],
                   ),
@@ -154,53 +154,53 @@ class AdaptiveLessonLayout extends StatelessWidget {
         (info.screenWidth < 380 && info.screenHeight < 840);
     if (shouldScroll) {
       return SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         physics: const ClampingScrollPhysics(),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _buildHeader(context, info),
             const Divider(height: 1, thickness: 1, color: AppColors.border),
-            SizedBox(height: isCompactWidth ? 10 : 14),
+            SizedBox(height: isCompactWidth ? 8 : 10),
             questionCard,
-            SizedBox(height: isCompactWidth ? 10 : 14),
+            SizedBox(height: isCompactWidth ? 8 : 10),
             DecoratedBox(
               decoration: BoxDecoration(
                 color: AppColors.white,
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Padding(
-                padding: EdgeInsets.all(isCompactWidth ? 12 : 16),
+                padding: EdgeInsets.all(isCompactWidth ? 10 : 12),
                 child: mainContent,
               ),
             ),
-            SizedBox(height: isCompactWidth ? 10 : 14),
+            SizedBox(height: isCompactWidth ? 8 : 10),
             DecoratedBox(
               decoration: BoxDecoration(
                 color: AppColors.white,
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Padding(
-                padding: EdgeInsets.all(isCompactWidth ? 12 : 16),
+                padding: EdgeInsets.all(isCompactWidth ? 10 : 12),
                 child: progressContent,
               ),
             ),
-            SizedBox(height: isCompactWidth ? 10 : 14),
+            SizedBox(height: isCompactWidth ? 8 : 10),
             _buildNavigationRow(context),
           ],
         ),
       );
     }
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _buildHeader(context, info),
           const Divider(height: 1, thickness: 1, color: AppColors.border),
-          SizedBox(height: isCompactWidth ? 8 : 12),
+          SizedBox(height: isCompactWidth ? 6 : 8),
           questionCard,
-          SizedBox(height: isCompactWidth ? 8 : 12),
+          SizedBox(height: isCompactWidth ? 6 : 8),
           Flexible(
             child: DecoratedBox(
               decoration: BoxDecoration(
@@ -208,23 +208,23 @@ class AdaptiveLessonLayout extends StatelessWidget {
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Padding(
-                padding: EdgeInsets.all(isCompactWidth ? 12 : 16),
+                padding: EdgeInsets.all(isCompactWidth ? 10 : 12),
                 child: mainContent,
               ),
             ),
           ),
-          SizedBox(height: isCompactWidth ? 8 : 12),
+          SizedBox(height: isCompactWidth ? 6 : 8),
           DecoratedBox(
             decoration: BoxDecoration(
               color: AppColors.white,
               borderRadius: BorderRadius.circular(16),
             ),
             child: Padding(
-              padding: EdgeInsets.all(isCompactWidth ? 12 : 16),
+              padding: EdgeInsets.all(isCompactWidth ? 10 : 12),
               child: progressContent,
             ),
           ),
-          SizedBox(height: isCompactWidth ? 8 : 12),
+          SizedBox(height: isCompactWidth ? 6 : 8),
           _buildNavigationRow(context),
         ],
       ),
@@ -235,7 +235,7 @@ class AdaptiveLessonLayout extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final isCompact = constraints.maxWidth < 680;
-        final buttonHeight = constraints.maxWidth < 420 ? 34.0 : 40.0;
+        final buttonHeight = 36.0;
         final buttons = [
           AppButton(
             label: 'Previous',

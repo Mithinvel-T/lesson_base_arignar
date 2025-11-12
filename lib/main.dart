@@ -21,6 +21,14 @@ class LessonBaseApp extends StatelessWidget {
         useMaterial3: true,
         scaffoldBackgroundColor: AppColors.lightGrey,
       ),
+      builder: (context, child) {
+        return MediaQuery(
+          data: MediaQuery.of(
+            context,
+          ).copyWith(textScaler: const TextScaler.linear(0.85)),
+          child: child!,
+        );
+      },
       routes: {
         '/': (context) => const SimpleTaskWrapper(),
         '/simple-task': (context) => const SimpleTaskWrapper(),
@@ -43,47 +51,36 @@ class SimpleTaskWrapper extends StatelessWidget {
           autoScale: false,
         ),
         behavior: SnackBarBehavior.floating,
-        backgroundColor: AppColors.primaryBlue,
+        backgroundColor: const Color.fromARGB(211, 255, 153, 0),
         duration: const Duration(seconds: 2),
+        margin: const EdgeInsets.only(top: 50, left: 16, right: 16),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        margin: EdgeInsets.zero,
-        padding: EdgeInsets.zero,
-        width: double.infinity,
-        height: double.infinity,
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            // Use 100% of container width since HTML portal already handles sidebar width
-            final targetWidth = constraints.maxWidth.clamp(
-              320.0,
-              constraints.maxWidth,
-            );
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Limit content width to prevent zoomed appearance
+        final targetWidth = constraints.maxWidth.clamp(320.0, 420.0);
 
-            return SizedBox(
-              width: targetWidth,
-              height: constraints.maxHeight,
-              child: _EmbeddedAwareSimpleTask(
-                onReady: () {},
-                chapterID: 'chapter-001',
-                lessonID: 'lesson-001',
-                onLessonComplete: () =>
-                    _showSnackBar(context, 'Lesson Complete!'),
-                onExitPressed: () => _showSnackBar(context, 'Exit tapped'),
-                onJumpToQuestion: () =>
-                    _showSnackBar(context, 'Jump to Question tapped'),
-                onPrevLessonPressed: () =>
-                    _showSnackBar(context, 'Reached first lesson'),
-              ),
-            );
-          },
-        ),
-      ),
+        return SizedBox(
+          width: targetWidth,
+          height: constraints.maxHeight,
+          child: _EmbeddedAwareSimpleTask(
+            onReady: () {},
+            chapterID: 'chapter-001',
+            lessonID: 'lesson-001',
+            onLessonComplete: () => _showSnackBar(context, 'Lesson Complete!'),
+            onExitPressed: () => _showSnackBar(context, 'Exit tapped'),
+            onJumpToQuestion: () =>
+                _showSnackBar(context, 'Jump to Question tapped'),
+            onPrevLessonPressed: () =>
+                _showSnackBar(context, 'Reached first lesson'),
+          ),
+        );
+      },
     );
   }
 }
@@ -113,8 +110,6 @@ class _EmbeddedAwareSimpleTask extends StatefulWidget {
 }
 
 class _EmbeddedAwareSimpleTaskState extends State<_EmbeddedAwareSimpleTask> {
-  final bool _sentReady = false;
-
   @override
   Widget build(BuildContext context) {
     return SimpleTask(

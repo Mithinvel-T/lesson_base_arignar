@@ -27,19 +27,20 @@ class AppButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final resolvedPadding =
-        padding ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 10);
-    final resolvedHeight = height ?? 44;
-    final resolvedRadius = borderRadius ?? 10;
+        padding ?? const EdgeInsets.symmetric(horizontal: 14, vertical: 10);
+    final resolvedHeight = height ?? 36;
+    final resolvedRadius = borderRadius ?? 8;
 
     final button = FilledButton(
       style: FilledButton.styleFrom(
-        backgroundColor: AppColors.primaryBlue,
+        backgroundColor: AppColors.headerOrange,
         foregroundColor: AppColors.white,
         minimumSize: Size(expanded ? double.infinity : 0, resolvedHeight),
         padding: resolvedPadding,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(resolvedRadius),
         ),
+        elevation: 1,
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
       ),
       onPressed: onPressed,
@@ -47,25 +48,19 @@ class AppButton extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          if (leading != null) ...[
-            leading!,
-            const SizedBox(width: 8),
-          ],
+          if (leading != null) ...[leading!, const SizedBox(width: 8)],
           ScalableText(
             label,
             autoScale: true,
-            minFontSize: 13,
-            maxFontSize: 18,
+            minFontSize: 12,
+            maxFontSize: 15,
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.white,
-                ),
+              fontWeight: FontWeight.w600,
+              color: AppColors.white,
+            ),
           ),
-          if (trailing != null) ...[
-            const SizedBox(width: 8),
-            trailing!,
-          ],
+          if (trailing != null) ...[const SizedBox(width: 8), trailing!],
         ],
       ),
     );
@@ -77,7 +72,3 @@ class AppButton extends StatelessWidget {
     return SizedBox(width: double.infinity, child: button);
   }
 }
-
-
-
-
