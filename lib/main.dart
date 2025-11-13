@@ -19,7 +19,7 @@ class LessonBaseApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primaryBlue),
         useMaterial3: true,
-        scaffoldBackgroundColor: AppColors.lightGrey,
+        scaffoldBackgroundColor: AppColors.lightYellowBackground,
       ),
       builder: (context, child) {
         return MediaQuery(

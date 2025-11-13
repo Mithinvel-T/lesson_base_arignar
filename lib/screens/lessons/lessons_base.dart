@@ -61,61 +61,91 @@ abstract class LessonsBaseState<T extends LessonsBase> extends State<T> {
   @protected
   Widget showProgressIndicator() {
     final isCompact = MediaQuery.of(context).size.width < 420;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ScalableText(
-          'Lesson ${currentLessonIndex + 1} of ${lessons.length}',
-          minFontSize: isCompact ? 11 : 13,
-          maxFontSize: isCompact ? 16 : 18,
-          style: Theme.of(context).textTheme.bodyMedium,
-        ),
-        SizedBox(height: isCompact ? 6 : 8),
-        LinearProgressIndicator(
-          value: lessons.isEmpty
-              ? 0
-              : (currentLessonIndex + 1) / lessons.length.toDouble(),
-          backgroundColor: AppColors.border,
-          color: AppColors.primaryBlue,
-          minHeight: isCompact ? 5 : 8,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        if (isCurrentAnswerCorrect != null) ...[
-          SizedBox(height: isCompact ? 8 : 10),
-          DecoratedBox(
-            decoration: BoxDecoration(
-              color: isCurrentAnswerCorrect!
-                  ? AppColors.success.withOpacity(0.12)
-                  : AppColors.error.withOpacity(0.12),
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color:
-                      (isCurrentAnswerCorrect!
-                              ? AppColors.success
-                              : AppColors.error)
-                          .withOpacity(0.15),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
+    final progressValue = lessons.isEmpty
+        ? 0.0
+        : (currentLessonIndex + 1) / lessons.length.toDouble();
+    final percentage = lessons.isEmpty
+        ? 0
+        : ((currentLessonIndex + 1) / lessons.length * 100).round();
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              ScalableText(
+                '${currentLessonIndex + 1}/${lessons.length}',
+                minFontSize: isCompact ? 11 : 12,
+                maxFontSize: isCompact ? 13 : 14,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: AppColors.darkText,
+                  fontWeight: FontWeight.w500,
                 ),
-              ],
-            ),
-            child: Padding(
-              padding: EdgeInsets.all(isCompact ? 8 : 10),
-              child: ScalableText(
-                isCurrentAnswerCorrect! ? 'Correct!' : 'Try again!',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: isCurrentAnswerCorrect!
-                      ? AppColors.success
-                      : AppColors.error,
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: LinearProgressIndicator(
+                      value: progressValue,
+                      backgroundColor: AppColors.progressTrackGrey,
+                      color: AppColors.progressRed,
+                      minHeight: isCompact ? 6 : 8,
+                    ),
+                  ),
                 ),
-                minFontSize: 13,
-                maxFontSize: 20,
+              ),
+              ScalableText(
+                '$percentage%',
+                minFontSize: isCompact ? 11 : 12,
+                maxFontSize: isCompact ? 13 : 14,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: AppColors.darkText,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+          if (isCurrentAnswerCorrect != null) ...[
+            SizedBox(height: isCompact ? 12 : 16),
+            DecoratedBox(
+              decoration: BoxDecoration(
+                color: isCurrentAnswerCorrect!
+                    ? AppColors.success.withOpacity(0.12)
+                    : AppColors.error.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color:
+                        (isCurrentAnswerCorrect!
+                                ? AppColors.success
+                                : AppColors.error)
+                            .withOpacity(0.15),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Padding(
+                padding: EdgeInsets.all(isCompact ? 8 : 10),
+                child: ScalableText(
+                  isCurrentAnswerCorrect! ? 'Correct!' : 'Try again!',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: isCurrentAnswerCorrect!
+                        ? AppColors.success
+                        : AppColors.error,
+                  ),
+                  minFontSize: 13,
+                  maxFontSize: 20,
+                ),
               ),
             ),
-          ),
+          ],
         ],
-      ],
+      ),
     );
   }
 

@@ -14,4 +14,11 @@ class AppColors {
   static const Color border = Color(0xFFE1E5EE);
   static const Color success = Color(0xFF2AC769);
   static const Color error = Color(0xFFFF6B6B);
+
+  // Mobile-first design colors
+  static const Color lightYellowBackground = Color(0xFFFFF8E1);
+  static const Color progressRed = Color(0xFFE53935);
+  static const Color audioIconRed = Color(0xFFE53935);
+  static const Color progressTrackGrey = Color(0xFFE0E0E0);
+  static const Color softShadow = Color(0x1A000000);
 }

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:lesson_base_arignar/screens/lessons/lessons_base.dart';
 import 'package:lesson_base_arignar/theme/app_colors.dart';
 import 'package:lesson_base_arignar/theme/app_text_styles.dart';
-import 'package:lesson_base_arignar/widgets/density/app_button.dart';
 import 'package:lesson_base_arignar/widgets/density/scalable_text.dart';
 
 class SimpleTask extends LessonsBase {
@@ -170,233 +169,85 @@ class _SimpleTaskState extends LessonsBaseState<SimpleTask> {
     final isCompact = size.width < 420;
     final question =
         currentLesson?['question'] as String? ?? currentLesson?['word'] ?? '';
-    final imageUrl = currentLesson?['image'] as String?;
     final questionLength = question.length;
     double maxFont;
     if (questionLength > 160) {
-      maxFont = isCompact ? 15 : 17;
+      maxFont = isCompact ? 18 : 20;
     } else if (questionLength > 110) {
-      maxFont = isCompact ? 17 : 19;
-    } else if (questionLength > 80) {
-      maxFont = isCompact ? 19 : 21;
-    } else {
       maxFont = isCompact ? 20 : 22;
+    } else if (questionLength > 80) {
+      maxFont = isCompact ? 22 : 24;
+    } else {
+      maxFont = isCompact ? 24 : 26;
     }
-    final double minFont = (maxFont - (isCompact ? 6 : 8)).clamp(
-      12.0,
+    final double minFont = (maxFont - (isCompact ? 4 : 6)).clamp(
+      16.0,
       maxFont.toDouble(),
     );
+
     return DecoratedBox(
       decoration: BoxDecoration(
         color: AppColors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: AppColors.border.withOpacity(0.3),
-            blurRadius: 4,
+            color: AppColors.softShadow,
+            blurRadius: 8,
             offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Padding(
-        padding: EdgeInsets.all(isCompact ? 8 : 12),
+        padding: EdgeInsets.all(isCompact ? 16 : 20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
           children: [
+            // Question text with audio icon
             Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _buildPill(displayType),
+                Flexible(
+                  child: ScalableText(
+                    question,
+                    style: AppTextStyles.headlineLarge(
+                      context,
+                    ).copyWith(fontSize: maxFont, fontWeight: FontWeight.w700),
+                    textAlign: TextAlign.center,
+                    autoScale: true,
+                    minFontSize: minFont,
+                    maxFontSize: maxFont,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
                 const SizedBox(width: 8),
-                _buildPill(skillType),
-              ],
-            ),
-
-            SizedBox(height: isCompact ? 4 : 6),
-            ScalableText(
-              'Select the correct word',
-              style: AppTextStyles.bodyMedium(
-                context,
-              ).copyWith(fontWeight: FontWeight.w600),
-              textAlign: TextAlign.left,
-              autoScale: true,
-              maxFontSize: isCompact ? 12 : 13,
-              minFontSize: isCompact ? 11 : 12,
-            ),
-            SizedBox(height: isCompact ? 3 : 4),
-            ScalableText(
-              question,
-              style: AppTextStyles.headlineLarge(context),
-              textAlign: TextAlign.left,
-              autoScale: true,
-              minFontSize: minFont < 14 ? 14 : minFont,
-              maxFontSize: maxFont,
-              maxLines: 2,
-            ),
-            if (imageUrl != null) ...[
-              SizedBox(height: isCompact ? 12 : 16),
-              Center(child: _buildQuestionImage(imageUrl, isCompact)),
-            ],
-            SizedBox(height: isCompact ? 12 : 16),
-            // Options inside the same container
-            _buildAnswersWidget(),
-            SizedBox(height: isCompact ? 12 : 16),
-            // Navigation buttons inside the same container
-            _buildNavigationButtons(isCompact),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNavigationButtons(bool isCompact) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isCompactWidth = constraints.maxWidth < 680;
-        final buttonHeight = 36.0;
-        final buttons = [
-          AppButton(
-            label: 'Previous',
-            onPressed: () => previousQuestion(),
-            height: buttonHeight,
-          ),
-          AppButton(
-            label: 'Jump to Question',
-            onPressed: widget.onJumpToQuestion,
-            height: buttonHeight,
-          ),
-          AppButton(
-            label: 'Next',
-            onPressed: () => nextQuestion(),
-            height: buttonHeight,
-          ),
-        ];
-
-        if (isCompactWidth) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              for (var i = 0; i < buttons.length; i++) ...[
-                buttons[i],
-                if (i != buttons.length - 1) const SizedBox(height: 16),
-              ],
-            ],
-          );
-        }
-
-        return Row(
-          children: [
-            for (var i = 0; i < buttons.length; i++) ...[
-              Expanded(child: buttons[i]),
-              if (i != buttons.length - 1) const SizedBox(width: 20),
-            ],
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildQuestionImage(String imageUrl, bool isCompact) {
-    // Taller image height to show full image without cropping
-    final imageHeight = isCompact ? 160.0 : 180.0;
-
-    return Container(
-      height: imageHeight,
-      width: imageHeight,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border.withOpacity(0.2), width: 2),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.12),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
-            spreadRadius: 3,
-          ),
-          BoxShadow(
-            color: Colors.black.withOpacity(0.06),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
-            spreadRadius: 1,
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(14),
-        child: imageUrl.startsWith('http')
-            ? Image.network(
-                imageUrl,
-                height: imageHeight,
-                width: imageHeight,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    height: imageHeight,
-                    alignment: Alignment.center,
-                    child: Icon(
-                      Icons.image_not_supported,
-                      size: 48,
-                      color: AppColors.border,
-                    ),
-                  );
-                },
-                loadingBuilder: (context, child, loadingProgress) {
-                  if (loadingProgress == null) return child;
-                  return Container(
-                    height: imageHeight,
-                    alignment: Alignment.center,
-                    child: SizedBox(
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () {
+                      // Audio playback functionality
+                    },
+                    borderRadius: BorderRadius.circular(20),
+                    child: Container(
                       width: 32,
                       height: 32,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 3,
-                        color: AppColors.primaryBlue,
-                        value: loadingProgress.expectedTotalBytes != null
-                            ? loadingProgress.cumulativeBytesLoaded /
-                                  loadingProgress.expectedTotalBytes!
-                            : null,
+                      alignment: Alignment.center,
+                      child: Icon(
+                        Icons.volume_up,
+                        color: AppColors.audioIconRed,
+                        size: 24,
                       ),
                     ),
-                  );
-                },
-              )
-            : Image.asset(
-                imageUrl,
-                height: imageHeight,
-                width: imageHeight,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    height: imageHeight,
-                    alignment: Alignment.center,
-                    child: Icon(
-                      Icons.image_not_supported,
-                      size: 48,
-                      color: AppColors.border,
-                    ),
-                  );
-                },
-              ),
-      ),
-    );
-  }
-
-  Widget _buildPill(String label) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.primaryBlue.withOpacity(0.12),
-        borderRadius: BorderRadius.circular(50),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-      child: ScalableText(
-        label,
-        style: AppTextStyles.bodyMedium(
-          context,
-        ).copyWith(color: AppColors.primaryBlue, fontWeight: FontWeight.w600),
-        autoScale: true,
-        maxFontSize: 14,
-        minFontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: isCompact ? 12 : 16),
+            // Answer options
+            _buildAnswersWidget(),
+          ],
+        ),
       ),
     );
   }
@@ -416,126 +267,210 @@ class _SimpleTaskState extends LessonsBaseState<SimpleTask> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final width = constraints.maxWidth;
-        final double crossAxisSpacing = width < 380 ? 8 : 10;
-        final double mainAxisSpacing = width < 380 ? 8 : 10;
+        final isCompact = width < 380;
+        final double gap = isCompact ? 10 : 12;
 
-        // Calculate the item width first
-        final itemWidth = width < 380
-            ? width
-            : width < 720
-            ? (width - crossAxisSpacing) / 2
-            : (width - (crossAxisSpacing * 3)) / 4;
+        // Create rows of 2 columns with square boxes
+        final List<Widget> rows = [];
+        for (int i = 0; i < wordsToDisplay.length; i += 2) {
+          final rowChildren = <Widget>[];
 
-        // Calculate max height needed for all options
-        final fontSize = itemWidth < 120
-            ? 13.0
-            : itemWidth < 170
-            ? 14.0
-            : 17.0;
+          // First option in row - square box with constrained size
+          rowChildren.add(
+            Expanded(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxHeight: isCompact ? 140 : 160),
+                child: AspectRatio(aspectRatio: 1.0, child: getListofWords(i)),
+              ),
+            ),
+          );
 
-        // Estimate lines needed for each option and find the max
-        double maxHeightNeeded =
-            70.0; // minimum height - reduced for compact layout
-        for (final word in wordsToDisplay) {
-          // Rough character count per line based on font size and width
-          final charsPerLine = (itemWidth - 20) ~/ (fontSize * 0.55);
-          final estimatedLines = (word.length / charsPerLine).ceil();
-          final estimatedHeight =
-              (estimatedLines * fontSize * 1.6) +
-              25; // padding + spacing - reduced
-          if (estimatedHeight > maxHeightNeeded) {
-            maxHeightNeeded = estimatedHeight;
+          // Gap between columns
+          if (i + 1 < wordsToDisplay.length) {
+            rowChildren.add(SizedBox(width: gap));
+          }
+
+          // Second option in row (if exists) - square box
+          if (i + 1 < wordsToDisplay.length) {
+            rowChildren.add(
+              Expanded(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(maxHeight: isCompact ? 140 : 160),
+                  child: AspectRatio(
+                    aspectRatio: 1.0,
+                    child: getListofWords(i + 1),
+                  ),
+                ),
+              ),
+            );
+          } else {
+            // Empty space if odd number of options
+            rowChildren.add(const Expanded(child: SizedBox()));
+          }
+
+          rows.add(
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: rowChildren,
+            ),
+          );
+
+          // Add spacing between rows
+          if (i + 2 < wordsToDisplay.length) {
+            rows.add(SizedBox(height: gap));
           }
         }
 
-        // Cap the maximum height to prevent excessively tall boxes - reduced range
-        maxHeightNeeded = maxHeightNeeded.clamp(70.0, 150.0);
-
-        return Wrap(
-          spacing: crossAxisSpacing,
-          runSpacing: mainAxisSpacing,
-          children: wordsToDisplay.asMap().entries.map((entry) {
-            final index = entry.key;
-            return SizedBox(
-              width: itemWidth,
-              child: getListofWords(index, maxHeightNeeded),
-            );
-          }).toList(),
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: rows,
         );
       },
     );
   }
 
   @override
-  Widget getListofWords(int index, [double? uniformHeight]) {
+  Widget getListofWords(int index) {
     final word = wordsToDisplay[index];
     final isSelected = selectedOptionIndex == index;
     final isCorrect = isSelected && isCurrentAnswerCorrect == true;
     final isIncorrect = isSelected && isCurrentAnswerCorrect == false;
 
-    Color backgroundColor = AppColors.primaryYellow.withOpacity(0.2);
-    Color borderColor = AppColors.primaryYellow.withOpacity(0.6);
+    // Get option image if available (for future enhancement)
+    // For now, use question image or placeholder
+    final optionImageUrl = currentLesson?['optionImages']?[index] as String?;
+    final questionImageUrl = currentLesson?['image'] as String?;
+    final displayImageUrl = optionImageUrl ?? questionImageUrl;
+
+    Color borderColor = AppColors.border;
+    List<BoxShadow> shadows = [
+      BoxShadow(
+        color: AppColors.softShadow,
+        blurRadius: 8,
+        offset: const Offset(0, 2),
+      ),
+    ];
 
     if (isCorrect) {
-      backgroundColor = AppColors.success.withOpacity(0.18);
       borderColor = AppColors.success;
+      shadows = [
+        BoxShadow(
+          color: AppColors.success.withOpacity(0.3),
+          blurRadius: 12,
+          offset: const Offset(0, 4),
+        ),
+      ];
     } else if (isIncorrect) {
-      backgroundColor = AppColors.error.withOpacity(0.18);
       borderColor = AppColors.error;
+      shadows = [
+        BoxShadow(
+          color: AppColors.error.withOpacity(0.2),
+          blurRadius: 8,
+          offset: const Offset(0, 2),
+        ),
+      ];
+    } else if (isSelected) {
+      borderColor = AppColors.headerOrange;
+      shadows = [
+        BoxShadow(
+          color: AppColors.headerOrange.withOpacity(0.25),
+          blurRadius: 10,
+          offset: const Offset(0, 3),
+        ),
+      ];
     }
 
-    return LayoutBuilder(
-      builder: (context, itemConstraints) {
-        final itemWidth = itemConstraints.maxWidth;
-        final fontSize = itemWidth < 120
-            ? 13.0
-            : itemWidth < 170
-            ? 14.0
-            : 17.0;
-
-        // Use provided uniform height or calculate based on screen width
-        final height = uniformHeight ?? (itemWidth < 380 ? 100.0 : 120.0);
-
-        return GestureDetector(
-          onTap: () => verifyWords(index),
-          child: Container(
-            constraints: BoxConstraints(
-              maxWidth: itemWidth,
-              minHeight: height,
-              maxHeight: height,
-            ),
-            decoration: BoxDecoration(
-              color: backgroundColor,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: borderColor, width: 1.2),
-              boxShadow: [
-                BoxShadow(
-                  color: borderColor.withOpacity(0.2),
-                  blurRadius: 3,
-                  offset: const Offset(0, 1),
+    return GestureDetector(
+      onTap: () => verifyWords(index),
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: borderColor, width: isSelected ? 2 : 1.5),
+          boxShadow: shadows,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Image container - constrained size
+            Flexible(
+              flex: 3,
+              child: ClipRRect(
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(20),
+                  topRight: Radius.circular(20),
                 ),
-              ],
-            ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  word,
-                  style: AppTextStyles.bodyMedium(context).copyWith(
-                    fontSize: fontSize,
-                    height: 1.5,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  textAlign: TextAlign.left,
-                  softWrap: true,
-                  overflow: TextOverflow.visible,
+                child: Container(
+                  width: double.infinity,
+                  color: AppColors.border.withOpacity(0.2),
+                  child: displayImageUrl != null && displayImageUrl.isNotEmpty
+                      ? Image.network(
+                          displayImageUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              alignment: Alignment.center,
+                              padding: const EdgeInsets.all(8),
+                              child: Icon(
+                                Icons.image_not_supported,
+                                size: 32,
+                                color: AppColors.border,
+                              ),
+                            );
+                          },
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return Container(
+                              alignment: Alignment.center,
+                              padding: const EdgeInsets.all(8),
+                              child: SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: AppColors.progressRed,
+                                  value:
+                                      loadingProgress.expectedTotalBytes != null
+                                      ? loadingProgress.cumulativeBytesLoaded /
+                                            loadingProgress.expectedTotalBytes!
+                                      : null,
+                                ),
+                              ),
+                            );
+                          },
+                        )
+                      : Container(
+                          alignment: Alignment.center,
+                          padding: const EdgeInsets.all(8),
+                          child: Icon(
+                            Icons.image,
+                            size: 32,
+                            color: AppColors.border,
+                          ),
+                        ),
                 ),
               ),
             ),
-          ),
-        );
-      },
+            // Text label - compact
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+              child: Text(
+                word,
+                style: AppTextStyles.bodyMedium(context).copyWith(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.darkText,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
