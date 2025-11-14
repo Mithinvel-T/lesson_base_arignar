@@ -19,31 +19,70 @@ class QuizOptions extends StatelessWidget {
     final media = MediaQuery.of(context);
     final screenWidth = media.size.width;
 
-    // Device-based responsive calculations for luxury layout
+    // Enhanced responsive breakpoints for better medium-screen support
     final isMobile = screenWidth < 600;
-    final isTablet = screenWidth < 1024;
+    final isTablet = screenWidth >= 600 && screenWidth < 1200;
 
-    // Device-specific container width calculations (compact for embedded view)
+    // Responsive container width calculations with better medium-screen support
     double containerWidth;
     if (isMobile) {
-      containerWidth = screenWidth * 0.85; // Mobile: 85% (reduced from 90%)
+      containerWidth =
+          screenWidth * 0.90; // Mobile: 90% for comfortable spacing
     } else if (isTablet) {
-      containerWidth = screenWidth * 0.65; // Tablet: 65% (reduced from 70%)
+      containerWidth = screenWidth * 0.75; // Tablet: 75% for balanced layout
     } else {
-      containerWidth = screenWidth * 0.55; // Desktop: 55% (reduced from 60%)
+      containerWidth =
+          screenWidth * 0.60; // Desktop: 60% for optimal readability
     }
 
-    // Grid configuration
+    // Grid configuration with proper medium-screen handling
     final crossAxisCount = isMobile ? 1 : 2;
 
-    // Reduced fixed height for embedded view
-    final fixedHeight = isMobile ? 70.0 : 80.0; // Reduced by ~15px
+    // Enhanced height scaling for medium screens
+    double containerHeight;
+    if (isMobile) {
+      containerHeight = 75.0; // Mobile: compact but readable
+    } else if (isTablet) {
+      containerHeight = 95.0; // Tablet: increased height for better proportions
+    } else {
+      containerHeight = 85.0; // Desktop: balanced height
+    }
 
-    // Compact styling constants for embedded view
-    const borderRadius = 20.0; // Slightly reduced corners
-    const horizontalPadding = 14.0; // Reduced padding
-    const verticalPadding = 12.0; // Reduced vertical padding
-    final spacing = isMobile ? 12.0 : 16.0; // Reduced spacing
+    // Enhanced styling with responsive padding
+    const borderRadius = 22.0;
+
+    double horizontalPadding;
+    double verticalPadding;
+    if (isMobile) {
+      horizontalPadding = 16.0;
+      verticalPadding = 14.0;
+    } else if (isTablet) {
+      horizontalPadding = 20.0; // Increased for medium screens
+      verticalPadding = 18.0; // Increased for better proportions
+    } else {
+      horizontalPadding = 18.0;
+      verticalPadding = 16.0;
+    }
+
+    // Responsive spacing
+    double spacing;
+    if (isMobile) {
+      spacing = 14.0;
+    } else if (isTablet) {
+      spacing = 18.0; // Increased spacing for medium screens
+    } else {
+      spacing = 16.0;
+    }
+
+    // Enhanced font sizing for medium screens
+    double fontSize;
+    if (isMobile) {
+      fontSize = 15.0;
+    } else if (isTablet) {
+      fontSize = 16.5; // Optimal size for tablet readability
+    } else {
+      fontSize = 17.0;
+    }
 
     return Center(
       child: SizedBox(
@@ -53,7 +92,7 @@ class QuizOptions extends StatelessWidget {
           physics: const NeverScrollableScrollPhysics(),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: crossAxisCount,
-            mainAxisExtent: fixedHeight, // Fixed height for equal containers
+            mainAxisExtent: containerHeight, // Responsive height
             crossAxisSpacing: spacing,
             mainAxisSpacing: spacing,
           ),
@@ -67,7 +106,13 @@ class QuizOptions extends StatelessWidget {
                 onTap: () => onOptionSelected(index),
                 borderRadius: BorderRadius.circular(borderRadius),
                 child: Container(
-                  height: fixedHeight, // Fixed height prevents stretching
+                  height: containerHeight,
+                  constraints: BoxConstraints(
+                    minWidth: isMobile
+                        ? 250.0
+                        : 220.0, // Minimum width constraint
+                    maxWidth: double.infinity,
+                  ),
                   decoration: BoxDecoration(
                     color: isSelected
                         ? const Color(0xFFFFF3E0) // Light orange for selected
@@ -85,46 +130,39 @@ class QuizOptions extends StatelessWidget {
                       BoxShadow(
                         color: isSelected
                             ? const Color(0xFFFF8F00).withOpacity(0.15)
-                            : Colors.black.withOpacity(
-                                0.10,
-                              ), // Luxury shadow rgba(0,0,0,0.10)
-                        blurRadius: 20, // Premium blur (18-22px)
-                        offset: const Offset(0, 4), // Luxury offset (0, 4)
+                            : Colors.black.withOpacity(0.08), // Softer shadow
+                        blurRadius: isTablet
+                            ? 16
+                            : 12, // Enhanced blur for tablets
+                        offset: const Offset(0, 3),
                         spreadRadius: 0,
                       ),
                     ],
                   ),
-                  padding: const EdgeInsets.symmetric(
+                  padding: EdgeInsets.symmetric(
                     horizontal: horizontalPadding,
                     vertical: verticalPadding,
                   ),
-                  // Slightly center-aligned vertically, naturally balanced
                   child: Align(
-                    alignment: Alignment
-                        .centerLeft, // Slightly center vertically, left horizontally
+                    alignment: Alignment.centerLeft,
                     child: Text(
                       options[index],
                       style: AppTextStyles.bodyLarge(context).copyWith(
-                        // Enhanced font weight for desktop visibility
                         fontWeight: isMobile
                             ? FontWeight.w500
-                            : FontWeight.w600,
+                            : (isTablet ? FontWeight.w600 : FontWeight.w600),
                         color: isSelected
                             ? const Color(
                                 0xFFFF8F00,
                               ) // Orange text for selected
                             : AppColors.darkText,
-                        height:
-                            1.4, // Premium line height for luxury readability
-                        // Enhanced font sizing for desktop prominence
-                        fontSize: isMobile ? 15 : (isTablet ? 16 : 17),
+                        height: 1.4, // Premium line height
+                        fontSize: fontSize, // Responsive font sizing
                       ),
-                      // LEFT aligned text (each new line starts from left)
                       textAlign: TextAlign.left,
-                      // Natural text wrapping within fixed height
                       maxLines: null,
-                      overflow: TextOverflow.visible, // No overflow issues
-                      softWrap: true, // Enable natural wrapping
+                      overflow: TextOverflow.visible,
+                      softWrap: true,
                     ),
                   ),
                 ),

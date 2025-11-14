@@ -178,13 +178,14 @@ class QuizHeader extends StatelessWidget {
 
   // Slim modern gradient progress bar widget
   Widget _buildSlimProgressBar(double height) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 600),
-      curve: Curves.easeOut,
+    // Calculate actual progress as a value between 0.0 and 1.0
+    final progressValue = progressPercentage / 100;
+
+    return Container(
       height: height,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(height * 0.5),
-        color: const Color(0xFFE0E0E0), // Soft grey background
+        color: const Color(0xFFE0E0E0), // Soft grey background for entire bar
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(height * 0.5),
@@ -196,28 +197,32 @@ class QuizHeader extends StatelessWidget {
               height: height,
               color: const Color(0xFFE0E0E0),
             ),
-            // Gradient fill based on percentage
+            // Gradient fill - ONLY for the filled portion
             AnimatedContainer(
               duration: const Duration(milliseconds: 600),
               curve: Curves.easeOut,
-              width: double.infinity,
               height: height,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(height * 0.5),
-                gradient: const LinearGradient(
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
-                  colors: [
-                    Color(0xFFFFE082), // Light Yellow
-                    Color(0xFFFFCA28), // Medium Yellow
-                    Color(0xFFFFA000), // Deep Orange
-                  ],
-                  stops: [0.0, 0.5, 1.0],
-                ),
-              ),
+              // Width is ONLY the progress percentage of the total width
               child: FractionallySizedBox(
                 alignment: Alignment.centerLeft,
-                widthFactor: progressPercentage / 100, // Exact percentage fill
+                widthFactor:
+                    progressValue, // This controls the actual fill width
+                child: Container(
+                  height: height,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(height * 0.5),
+                    gradient: const LinearGradient(
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                      colors: [
+                        Color(0xFFFFE082), // Light Yellow
+                        Color(0xFFFFCA28), // Medium Yellow
+                        Color(0xFFFFA000), // Deep Orange
+                      ],
+                      stops: [0.0, 0.5, 1.0],
+                    ),
+                  ),
+                ),
               ),
             ),
           ],

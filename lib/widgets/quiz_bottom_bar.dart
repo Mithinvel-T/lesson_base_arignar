@@ -114,16 +114,19 @@ class QuizBottomBar extends StatelessWidget {
       shadowColor = const Color(0xFFFFA726).withOpacity(0.25);
     }
 
+    // Fixed shape consistency: border radius proportional to button size
+    // This maintains the same visual shape ratio across all device sizes
+    final borderRadius =
+        buttonSize * 0.42; // Consistent 42% ratio for stable shape
+
     return Material(
       color: buttonColor,
-      borderRadius: BorderRadius.circular(
-        20.0,
-      ), // Reduced from 22px for compactness
+      borderRadius: BorderRadius.circular(borderRadius),
       elevation: isEnabled ? 4 : 1, // Reduced elevation for embedded view
       shadowColor: shadowColor,
       child: InkWell(
         onTap: onPressed,
-        borderRadius: BorderRadius.circular(20.0),
+        borderRadius: BorderRadius.circular(borderRadius),
         child: Container(
           width: buttonSize,
           height: buttonSize,
