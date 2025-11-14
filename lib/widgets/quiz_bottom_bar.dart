@@ -21,31 +21,36 @@ class QuizBottomBar extends StatelessWidget {
     final media = MediaQuery.of(context);
     final screenWidth = media.size.width;
 
-    // Dynamic sizing based on viewport
-    final buttonSize = (screenWidth * 0.12).clamp(48.0, 64.0);
-    final horizontalPadding = (screenWidth * 0.06).clamp(24.0, 48.0);
-    final verticalPadding = (screenWidth * 0.025).clamp(12.0, 20.0);
-    final buttonSpacing = (screenWidth * 0.08).clamp(32.0, 80.0);
+    // Fixed button size across all devices for consistency
+    const buttonSize = 56.0;
+
+    // Responsive horizontal padding for balanced layout
+    final horizontalPadding = screenWidth < 600
+        ? 20.0 // Mobile: tight padding
+        : screenWidth < 1024
+        ? 32.0 // Tablet: medium padding
+        : 48.0; // Desktop: generous padding
 
     return Container(
       width: double.infinity,
       padding: EdgeInsets.symmetric(
         horizontal: horizontalPadding,
-        vertical: verticalPadding,
+        vertical: 16.0,
       ),
       decoration: const BoxDecoration(
         color: Color(0xFFFFF8E1), // Soft cream background
         boxShadow: [
           BoxShadow(
-            color: Color(0x0F000000),
-            blurRadius: 8,
-            offset: Offset(0, -2),
+            color: Color(0x15000000),
+            blurRadius: 12,
+            offset: Offset(0, -3),
+            spreadRadius: 1,
           ),
         ],
       ),
       child: SafeArea(
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             // Home button
             _buildNavigationButton(
@@ -53,9 +58,8 @@ class QuizBottomBar extends StatelessWidget {
               onPressed: onHomePressed,
               buttonSize: buttonSize,
               isEnabled: true,
+              buttonType: 'home',
             ),
-
-            SizedBox(width: buttonSpacing),
 
             // Back button
             _buildNavigationButton(
@@ -63,9 +67,8 @@ class QuizBottomBar extends StatelessWidget {
               onPressed: canGoBack ? onBackPressed : null,
               buttonSize: buttonSize,
               isEnabled: canGoBack,
+              buttonType: 'back',
             ),
-
-            SizedBox(width: buttonSpacing),
 
             // Next button
             _buildNavigationButton(
@@ -73,6 +76,7 @@ class QuizBottomBar extends StatelessWidget {
               onPressed: canGoNext ? onNextPressed : null,
               buttonSize: buttonSize,
               isEnabled: canGoNext,
+              buttonType: 'next',
             ),
           ],
         ),
@@ -85,27 +89,43 @@ class QuizBottomBar extends StatelessWidget {
     required VoidCallback? onPressed,
     required double buttonSize,
     required bool isEnabled,
+    String buttonType = 'default',
   }) {
+    // Determine button color based on type and state
+    Color buttonColor;
+    Color shadowColor;
+
+    if (!isEnabled) {
+      buttonColor = const Color(0xFFE0E0E0); // Disabled grey
+      shadowColor = Colors.black.withOpacity(0.1);
+    } else if (buttonType == 'back') {
+      buttonColor = const Color(0xFFE0E0E0); // Soft grey for back
+      shadowColor = Colors.black.withOpacity(0.15);
+    } else {
+      buttonColor = const Color(0xFFFFA726); // Warm orange for home/next
+      shadowColor = const Color(0xFFFFA726).withOpacity(0.25);
+    }
+
     return Material(
-      color: isEnabled
-          ? const Color(0xFFFFA726) // Warm orange
-          : const Color(0xFFE0E0E0), // Disabled grey
-      borderRadius: BorderRadius.circular(buttonSize * 0.25),
-      elevation: isEnabled ? 4 : 1,
-      shadowColor: isEnabled
-          ? const Color(0xFFFFA726).withOpacity(0.3)
-          : Colors.black.withOpacity(0.1),
+      color: buttonColor,
+      borderRadius: BorderRadius.circular(22.0), // Fixed 22px corners
+      elevation: isEnabled ? 6 : 2,
+      shadowColor: shadowColor,
       child: InkWell(
         onTap: onPressed,
-        borderRadius: BorderRadius.circular(buttonSize * 0.25),
+        borderRadius: BorderRadius.circular(22.0),
         child: Container(
           width: buttonSize,
           height: buttonSize,
           alignment: Alignment.center,
           child: Icon(
             icon,
-            color: isEnabled ? Colors.white : const Color(0xFF9E9E9E),
-            size: buttonSize * 0.45,
+            color: isEnabled
+                ? (buttonType == 'back'
+                      ? const Color(0xFF555555)
+                      : Colors.white)
+                : const Color(0xFF9E9E9E),
+            size: buttonSize * 0.4,
           ),
         ),
       ),
