@@ -22,11 +22,11 @@ class QuestionContainer extends StatelessWidget {
     final isVeryCompact = screenWidth < 400;
     final isCompact = screenWidth < 600;
 
-    // Dynamic sizing based on viewport
-    final borderRadius = (screenWidth * 0.04).clamp(18.0, 22.0);
-    final shadowBlurRadius = (screenWidth * 0.015).clamp(6.0, 10.0);
-    final horizontalPadding = (screenWidth * 0.05).clamp(20.0, 28.0);
-    final verticalPadding = (screenWidth * 0.04).clamp(16.0, 24.0);
+    // Compact sizing for embedded view
+    final borderRadius = (screenWidth * 0.035).clamp(16.0, 20.0);
+    final shadowBlurRadius = (screenWidth * 0.012).clamp(4.0, 8.0);
+    final horizontalPadding = (screenWidth * 0.04).clamp(16.0, 22.0);
+    final verticalPadding = (screenWidth * 0.025).clamp(12.0, 18.0);
     final speakerSize = (screenWidth * 0.08).clamp(32.0, 48.0);
 
     // Question text font sizing based on length and viewport

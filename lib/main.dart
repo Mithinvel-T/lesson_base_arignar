@@ -251,8 +251,8 @@ class _EmbeddedAwareSimpleTaskState extends State<_EmbeddedAwareSimpleTask> {
     final media = MediaQuery.of(context);
     final screenWidth = media.size.width;
 
-    final verticalSpacing = (screenWidth * 0.04).clamp(16.0, 24.0);
-    final horizontalPadding = (screenWidth * 0.03).clamp(12.0, 20.0);
+    final verticalSpacing = (screenWidth * 0.025).clamp(10.0, 16.0);
+    final horizontalPadding = (screenWidth * 0.025).clamp(8.0, 16.0);
 
     return Scaffold(
       backgroundColor: const Color(0xFFFAF8EF),
@@ -265,7 +265,6 @@ class _EmbeddedAwareSimpleTaskState extends State<_EmbeddedAwareSimpleTask> {
               progressPercentage:
                   ((currentLessonIndex + 1) / lessons.length) * 100,
               title: currentLesson?['title'] ?? '',
-              onExitPressed: widget.onExitPressed,
             ),
             Expanded(
               child: SingleChildScrollView(

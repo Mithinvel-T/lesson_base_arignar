@@ -21,21 +21,25 @@ class QuizBottomBar extends StatelessWidget {
     final media = MediaQuery.of(context);
     final screenWidth = media.size.width;
 
-    // Fixed button size across all devices for consistency
-    const buttonSize = 56.0;
-
-    // Responsive horizontal padding for balanced layout
-    final horizontalPadding = screenWidth < 600
-        ? 20.0 // Mobile: tight padding
+    // Compact button size for embedded view
+    final buttonSize = screenWidth < 600
+        ? 36.0 // Mobile: ultra compact
         : screenWidth < 1024
-        ? 32.0 // Tablet: medium padding
-        : 48.0; // Desktop: generous padding
+        ? 42.0 // Tablet: compact
+        : 48.0; // Desktop: moderate
+
+    // Reduced horizontal padding for embedded view
+    final horizontalPadding = screenWidth < 600
+        ? 16.0 // Mobile: tight padding
+        : screenWidth < 1024
+        ? 24.0 // Tablet: reduced padding
+        : 32.0; // Desktop: moderate padding
 
     return Container(
       width: double.infinity,
       padding: EdgeInsets.symmetric(
         horizontal: horizontalPadding,
-        vertical: 16.0,
+        vertical: 8.0, // Reduced from 16.0 for embedded view
       ),
       decoration: const BoxDecoration(
         color: Color(0xFFFFF8E1), // Soft cream background
@@ -91,29 +95,35 @@ class QuizBottomBar extends StatelessWidget {
     required bool isEnabled,
     String buttonType = 'default',
   }) {
-    // Determine button color based on type and state
+    // Enhanced button color scheme - NO grey for back button
     Color buttonColor;
     Color shadowColor;
 
     if (!isEnabled) {
-      buttonColor = const Color(0xFFE0E0E0); // Disabled grey
+      buttonColor = const Color(
+        0xFFE0E0E0,
+      ); // Disabled grey only when truly disabled
       shadowColor = Colors.black.withOpacity(0.1);
     } else if (buttonType == 'back') {
-      buttonColor = const Color(0xFFE0E0E0); // Soft grey for back
-      shadowColor = Colors.black.withOpacity(0.15);
+      buttonColor = const Color(
+        0xFFFFB74D,
+      ); // Soft muted orange for back (NOT grey)
+      shadowColor = const Color(0xFFFFB74D).withOpacity(0.2);
     } else {
-      buttonColor = const Color(0xFFFFA726); // Warm orange for home/next
+      buttonColor = const Color(0xFFFFA726); // Bright orange for home/next
       shadowColor = const Color(0xFFFFA726).withOpacity(0.25);
     }
 
     return Material(
       color: buttonColor,
-      borderRadius: BorderRadius.circular(22.0), // Fixed 22px corners
-      elevation: isEnabled ? 6 : 2,
+      borderRadius: BorderRadius.circular(
+        20.0,
+      ), // Reduced from 22px for compactness
+      elevation: isEnabled ? 4 : 1, // Reduced elevation for embedded view
       shadowColor: shadowColor,
       child: InkWell(
         onTap: onPressed,
-        borderRadius: BorderRadius.circular(22.0),
+        borderRadius: BorderRadius.circular(20.0),
         child: Container(
           width: buttonSize,
           height: buttonSize,
@@ -121,11 +131,12 @@ class QuizBottomBar extends StatelessWidget {
           child: Icon(
             icon,
             color: isEnabled
-                ? (buttonType == 'back'
-                      ? const Color(0xFF555555)
-                      : Colors.white)
+                ? Colors
+                      .white // All active buttons get white icons (including back)
                 : const Color(0xFF9E9E9E),
-            size: buttonSize * 0.4,
+            size:
+                buttonSize *
+                0.48, // Slightly increased for better visibility in compact size
           ),
         ),
       ),

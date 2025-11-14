@@ -23,27 +23,27 @@ class QuizOptions extends StatelessWidget {
     final isMobile = screenWidth < 600;
     final isTablet = screenWidth < 1024;
 
-    // Device-specific container width calculations (luxury requirement)
+    // Device-specific container width calculations (compact for embedded view)
     double containerWidth;
     if (isMobile) {
-      containerWidth = screenWidth * 0.90; // Mobile: 90% of screen
+      containerWidth = screenWidth * 0.85; // Mobile: 85% (reduced from 90%)
     } else if (isTablet) {
-      containerWidth = screenWidth * 0.70; // Tablet: 70% of screen
+      containerWidth = screenWidth * 0.65; // Tablet: 65% (reduced from 70%)
     } else {
-      containerWidth = screenWidth * 0.60; // Laptop/Desktop: 60% of screen
+      containerWidth = screenWidth * 0.55; // Desktop: 55% (reduced from 60%)
     }
 
     // Grid configuration
     final crossAxisCount = isMobile ? 1 : 2;
 
-    // Fixed height for ALL option containers - luxury equal height requirement
-    final fixedHeight = isMobile ? 85.0 : 95.0;
+    // Reduced fixed height for embedded view
+    final fixedHeight = isMobile ? 70.0 : 80.0; // Reduced by ~15px
 
-    // Premium luxury styling constants
-    const borderRadius = 23.0; // Premium rounded corners (22-24px)
-    const horizontalPadding = 18.0; // Equal padding (16-20px)
-    const verticalPadding = 18.0;
-    final spacing = isMobile ? 16.0 : 20.0; // Equal spacing between containers
+    // Compact styling constants for embedded view
+    const borderRadius = 20.0; // Slightly reduced corners
+    const horizontalPadding = 14.0; // Reduced padding
+    const verticalPadding = 12.0; // Reduced vertical padding
+    final spacing = isMobile ? 12.0 : 16.0; // Reduced spacing
 
     return Center(
       child: SizedBox(
@@ -105,7 +105,10 @@ class QuizOptions extends StatelessWidget {
                     child: Text(
                       options[index],
                       style: AppTextStyles.bodyLarge(context).copyWith(
-                        fontWeight: FontWeight.w600,
+                        // Enhanced font weight for desktop visibility
+                        fontWeight: isMobile
+                            ? FontWeight.w500
+                            : FontWeight.w600,
                         color: isSelected
                             ? const Color(
                                 0xFFFF8F00,
@@ -113,7 +116,8 @@ class QuizOptions extends StatelessWidget {
                             : AppColors.darkText,
                         height:
                             1.4, // Premium line height for luxury readability
-                        fontSize: isMobile ? 15 : 16,
+                        // Enhanced font sizing for desktop prominence
+                        fontSize: isMobile ? 15 : (isTablet ? 16 : 17),
                       ),
                       // LEFT aligned text (each new line starts from left)
                       textAlign: TextAlign.left,
