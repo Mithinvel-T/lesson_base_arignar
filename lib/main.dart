@@ -6,6 +6,7 @@ import 'package:lesson_base_arignar/widgets/quiz_header.dart';
 import 'package:lesson_base_arignar/widgets/question_container.dart';
 import 'package:lesson_base_arignar/widgets/quiz_image.dart';
 import 'package:lesson_base_arignar/widgets/quiz_options.dart';
+import 'package:lesson_base_arignar/widgets/quiz_bottom_bar.dart';
 
 void main() {
   runApp(const LessonBaseApp());
@@ -207,24 +208,30 @@ class _EmbeddedAwareSimpleTaskState extends State<_EmbeddedAwareSimpleTask> {
       isCurrentAnswerCorrect = index == (currentLesson!['correctIndex'] as int);
     });
 
-    if (isCurrentAnswerCorrect == true) {
-      Future.delayed(const Duration(milliseconds: 1500), () {
-        if (mounted) {
-          _nextQuestion();
-        }
-      });
-    }
+    // No auto-advance - user must click Next button
   }
 
   void _nextQuestion() {
-    if (currentLessonIndex < lessons.length - 1) {
+    if (selectedOptionIndex != null) {
+      if (currentLessonIndex < lessons.length - 1) {
+        setState(() {
+          currentLessonIndex++;
+          selectedOptionIndex = null;
+          isCurrentAnswerCorrect = null;
+        });
+      } else {
+        widget.onLessonComplete();
+      }
+    }
+  }
+
+  void _previousQuestion() {
+    if (currentLessonIndex > 0) {
       setState(() {
-        currentLessonIndex++;
+        currentLessonIndex--;
         selectedOptionIndex = null;
         isCurrentAnswerCorrect = null;
       });
-    } else {
-      widget.onLessonComplete();
     }
   }
 
@@ -284,12 +291,21 @@ class _EmbeddedAwareSimpleTaskState extends State<_EmbeddedAwareSimpleTask> {
                         selectedIndex: selectedOptionIndex,
                         onOptionSelected: _onOptionSelected,
                       ),
+                    // Extra bottom padding for navigation bar
+                    const SizedBox(height: 20),
                   ],
                 ),
               ),
             ),
           ],
         ),
+      ),
+      bottomNavigationBar: QuizBottomBar(
+        onHomePressed: widget.onExitPressed,
+        onBackPressed: _previousQuestion,
+        onNextPressed: _nextQuestion,
+        canGoBack: currentLessonIndex > 0,
+        canGoNext: selectedOptionIndex != null,
       ),
     );
   }
