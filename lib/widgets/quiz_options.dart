@@ -23,60 +23,92 @@ class QuizOptions extends StatelessWidget {
   Widget build(BuildContext context) {
     return ResponsiveBuilder(
       builder: (context, responsive) {
-        // Use physical screen dimensions for zoom-independent calculations
+        // Get screen dimensions for flexible sizing
+        final screenWidth = MediaQuery.of(context).size.width;
 
-        // Flexible responsive calculations - NO CENTERING OR MAX WIDTH
-        final containerHeight = responsive
-            .getFlexibleHeight(
-              responsive.isMobile ? 10 : (responsive.isTablet ? 12 : 11),
-            )
-            .clamp(70.0, 120.0);
+        // Reduced spacing for more compact look
+        final spacing = screenWidth < 600 ? 8.0 : 12.0; // Reduced from 12/16
+        final borderRadius = screenWidth < 600
+            ? 10.0
+            : 12.0; // Reduced from 12/16
+        final verticalPadding = screenWidth < 600
+            ? 6.0
+            : 8.0; // Reduced from 8/12
 
-        // Grid configuration based on breakpoints
-        final crossAxisCount = responsive.isMobile ? 1 : 2;
+        // OPTIONS FONT SIZE - MUCH SMALLER than question
+        final questionLength =
+            80; // Average question length for consistent sizing
+        double baseMaxFont;
 
-        // Flexible padding and spacing
-        final borderRadius = responsive.getFlexiblePadding(
-          base: 22,
-          min: 16,
-          max: 28,
-        );
-        final horizontalPadding = responsive.getFlexiblePadding(
-          base: 20,
-          min: 16,
-          max: 26,
-        );
-        final verticalPadding = responsive.getFlexiblePadding(
-          base: 18,
-          min: 14,
-          max: 24,
-        );
-        final spacing = responsive.getFlexiblePadding(
-          base: 16,
-          min: 12,
-          max: 20,
-        );
+        // Much smaller font sizes than question (question: 16-24, options: 12-18)
+        if (questionLength > 160) {
+          baseMaxFont = 12; // Much smaller than question (16)
+        } else if (questionLength > 110) {
+          baseMaxFont = 14; // Much smaller than question (18)
+        } else if (questionLength > 80) {
+          baseMaxFont = 15; // Much smaller than question (20)
+        } else if (questionLength > 40) {
+          baseMaxFont = 16; // Much smaller than question (22)
+        } else {
+          baseMaxFont = 17; // Much smaller than question (24)
+        }
 
-        // Flexible font sizing
-        final fontSize = responsive.getFlexibleFontSize(
-          base: 18,
-          min: 16,
-          max: 22,
-        );
+        // Apply same responsive scaling as question
+        final isVeryCompact = screenWidth < 600;
+        final isCompact = screenWidth < 900;
+
+        final maxFont =
+            baseMaxFont * (isVeryCompact ? 0.9 : (isCompact ? 0.95 : 1.1));
+        final fontSize = maxFont.clamp(
+          12.0,
+          18.0,
+        ); // Much smaller range (12-18) vs question (16-24)
+
+        // Calculate dynamic height based on ALL options text content
+        double maxRequiredHeight = 0;
+
+        // Check each option to find the maximum height needed
+        for (String option in options) {
+          final textLength = option.length;
+          final wordCount = option.split(' ').length;
+
+          // Estimate lines needed for this option
+          double estimatedLines = 1.0;
+          if (textLength > 40 || wordCount > 6) {
+            estimatedLines = 2.0; // Likely 2 lines
+          }
+          if (textLength > 80 || wordCount > 12) {
+            estimatedLines = 3.0; // Likely 3 lines
+          }
+
+          // Calculate height needed for this option
+          final heightForOption =
+              (fontSize * estimatedLines * 1.2) +
+              (verticalPadding * 2 * 0.8) +
+              10;
+
+          // Keep track of maximum height needed
+          if (heightForOption > maxRequiredHeight) {
+            maxRequiredHeight = heightForOption;
+          }
+        }
+
+        // Use the maximum height for ALL containers (uniform height)
+        final containerHeight = maxRequiredHeight.clamp(50.0, 120.0);
 
         return SizedBox(
           width: double.infinity,
-          child: GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: crossAxisCount,
-              mainAxisExtent: containerHeight, // Responsive height
-              crossAxisSpacing: spacing,
-              mainAxisSpacing: spacing,
-            ),
-            itemCount: options.length,
-            itemBuilder: (context, index) {
+          child: Wrap(
+            spacing: spacing,
+            runSpacing: spacing,
+            alignment: WrapAlignment.center,
+            children: List.generate(options.length, (index) {
+              // All containers have SAME SIZE - uniform width for all options
+              final containerWidth =
+                  screenWidth * 0.42; // Fixed 42% width for all containers
+
+              // No text-based sizing - all containers are equal size
+
               final isSelected = selectedIndex == index;
 
               // Determine feedback colors based on answer correctness
@@ -109,9 +141,9 @@ class QuizOptions extends StatelessWidget {
               } else {
                 // Not selected - default white
                 backgroundColor = const Color(0xFFFFFFFF);
-                borderColor = Colors.transparent;
+                borderColor = Colors.grey.withOpacity(0.3);
                 textColor = AppColors.darkText;
-                shadowColor = Colors.black.withOpacity(0.08);
+                shadowColor = Colors.black.withOpacity(0.06);
               }
 
               return Material(
@@ -122,54 +154,68 @@ class QuizOptions extends StatelessWidget {
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 300),
                     curve: Curves.easeOut,
-                    width: double.infinity,
-                    height: containerHeight,
+                    width:
+                        containerWidth, // Dynamic width based on text content
+                    height:
+                        containerHeight, // Uniform height for all containers
                     decoration: BoxDecoration(
                       color: backgroundColor,
                       borderRadius: BorderRadius.circular(borderRadius),
-                      border: Border.all(color: borderColor, width: 2),
+                      border: Border.all(
+                        color: borderColor,
+                        width: isSelected ? 2.5 : 1.5,
+                      ),
                       boxShadow: [
                         BoxShadow(
                           color: shadowColor,
-                          blurRadius: responsive.getFlexiblePadding(
-                            base: 12,
-                            min: 8,
-                            max: 16,
-                          ),
+                          blurRadius: screenWidth < 600
+                              ? 8.0
+                              : 12.0, // Enhanced shadow
                           offset: const Offset(0, 3),
+                          spreadRadius: isSelected
+                              ? 1
+                              : 0, // Spread for selected state
+                        ),
+                        // Additional subtle inner shadow for luxury effect
+                        BoxShadow(
+                          color: Colors.white.withOpacity(0.1),
+                          blurRadius: 1.0,
+                          offset: const Offset(0, 1),
                           spreadRadius: 0,
                         ),
                       ],
                     ),
                     padding: EdgeInsets.symmetric(
-                      horizontal: horizontalPadding,
-                      vertical: verticalPadding,
+                      horizontal: 10.0, // 10px spacing on left and right sides
+                      vertical:
+                          verticalPadding * 0.8, // Slightly reduce vertical too
                     ),
-                    child: Align(
-                      alignment: Alignment.centerLeft,
+                    child: Center(
+                      // Centered as requested
                       child: Text(
                         options[index],
                         style: AppTextStyles.bodyLarge(context).copyWith(
-                          fontWeight: responsive.isMobile
-                              ? FontWeight.w500
-                              : (responsive.isTablet
-                                    ? FontWeight.w600
-                                    : FontWeight.w600),
-                          color:
-                              textColor, // Use dynamic text color for feedback
-                          height: 1.4, // Premium line height
-                          fontSize: fontSize, // Use responsive font size
+                          fontWeight:
+                              FontWeight.w600, // SAME as question (w600)
+                          color: textColor,
+                          height: 1.2, // Tighter for better fit
+                          fontSize: fontSize,
+                          letterSpacing:
+                              0.2, // Slight letter spacing for Tamil readability
                         ),
-                        textAlign: TextAlign.left,
-                        maxLines: null,
-                        overflow: TextOverflow.visible,
+                        textAlign: TextAlign
+                            .left, // Left-aligned for natural multi-line reading
+                        maxLines:
+                            3, // Allow up to 3 lines for better text accommodation
+                        overflow:
+                            TextOverflow.ellipsis, // Graceful overflow handling
                         softWrap: true,
                       ),
                     ),
                   ),
                 ),
               );
-            },
+            }),
           ),
         );
       },

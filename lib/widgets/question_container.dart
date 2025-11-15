@@ -36,32 +36,31 @@ class QuestionContainer extends StatelessWidget {
           max: 10,
         );
         final horizontalPadding = responsive.getFlexiblePadding(
-          base: 20,
-          min: 12,
-          max: 28,
+          base: 10, // Further reduced from 12
+          min: 6,
+          max: 14, // Reduced from 16
         );
         final verticalPadding = responsive.getFlexiblePadding(
-          base: 16,
-          min: 10,
-          max: 22,
+          base: 4, // MUCH SMALLER - reduced from 8 to 4
+          min: 2, // Very minimal - reduced from 4 to 2
+          max: 6, // Very compact - reduced from 12 to 6
         );
-        final speakerSize = responsive.getFlexibleWidth(10).clamp(36.0, 56.0);
 
-        // Smart font sizing based on question length and screen size
+        // Smart font sizing based on question length and container height
         final questionLength = question.length;
         double baseMaxFont;
 
-        // Dynamic font sizing based on content length
+        // Smaller, more refined font sizing for better container fit
         if (questionLength > 160) {
-          baseMaxFont = 20; // Very long text
+          baseMaxFont = 16; // Very long text - smaller font
         } else if (questionLength > 110) {
-          baseMaxFont = 22; // Long text
+          baseMaxFont = 18; // Long text
         } else if (questionLength > 80) {
-          baseMaxFont = 24; // Medium text
+          baseMaxFont = 20; // Medium text
         } else if (questionLength > 40) {
-          baseMaxFont = 26; // Short text
+          baseMaxFont = 22; // Short text
         } else {
-          baseMaxFont = 28; // Very short text
+          baseMaxFont = 24; // Very short text
         }
 
         // Apply responsive scaling
@@ -78,18 +77,31 @@ class QuestionContainer extends StatelessWidget {
           max: maxFont - 2,
         );
 
+        // Speaker icon size based on font size - slightly bigger with padding
+        final speakerSize =
+            maxFont + 16; // Font size + more padding for bigger container
+        final actualIconSize = maxFont * 1.2; // Icon 20% BIGGER than font size
+
         return SizedBox(
           width: double.infinity,
           child: Container(
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(borderRadius),
+              border: Border.all(color: Colors.grey.withOpacity(0.2), width: 1),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.08),
+                  color: Colors.black.withOpacity(0.06),
                   blurRadius: shadowBlurRadius,
-                  offset: const Offset(0, 3),
-                  spreadRadius: 1,
+                  offset: const Offset(0, 2),
+                  spreadRadius: 0,
+                ),
+                // Subtle inner highlight for luxury feel
+                BoxShadow(
+                  color: Colors.white.withOpacity(0.8),
+                  blurRadius: 1,
+                  offset: const Offset(0, 1),
+                  spreadRadius: 0,
                 ),
               ],
             ),
@@ -106,7 +118,9 @@ class QuestionContainer extends StatelessWidget {
                     style: AppTextStyles.headlineMedium(context).copyWith(
                       fontWeight: FontWeight.w600,
                       color: AppColors.darkText,
-                      height: 1.3, // Better line height for Tamil text
+                      height: 1.25, // Optimized line height for Tamil
+                      letterSpacing:
+                          0.1, // Slight letter spacing for readability
                     ),
                     textAlign: TextAlign.left,
                     minFontSize: minFont,
