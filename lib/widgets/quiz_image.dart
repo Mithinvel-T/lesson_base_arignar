@@ -4,7 +4,8 @@ class QuizImage extends StatelessWidget {
   const QuizImage({
     super.key,
     required this.imageUrl,
-    this.aspectRatio = 16 / 9,
+    this.aspectRatio =
+        2.2 / 1, // CHANGED from 16/9 to 2.2/1 for more compact height
   });
 
   final String? imageUrl;
@@ -19,21 +20,29 @@ class QuizImage extends StatelessWidget {
     final isVeryCompact = screenWidth < 400;
     final isCompact = screenWidth < 600;
 
-    // ACCESSIBILITY-FIRST sizing - Larger images for better visibility
+    // COMPACT sizing - Much smaller images for better layout balance
     final containerWidth =
         screenWidth *
         (isVeryCompact
-            ? 0.85
-            : (isCompact ? 0.80 : 0.75)); // Larger percentages
-    final maxContainerWidth = isCompact ? 320.0 : 400.0; // Larger max sizes
+            ? 0.65 // REDUCED from 0.85 to 0.65
+            : (isCompact ? 0.60 : 0.55)); // REDUCED from 0.80/0.75 to 0.60/0.55
+    final maxContainerWidth = isCompact
+        ? 240.0
+        : 300.0; // REDUCED from 320/400 to 240/300
     final finalWidth = containerWidth.clamp(
-      280.0,
+      200.0, // REDUCED minimum from 280 to 200
       maxContainerWidth,
-    ); // Higher minimum
+    );
 
-    // Border radius based on viewport
-    final borderRadius = (screenWidth * 0.05).clamp(22.0, 28.0);
-    final shadowBlurRadius = (screenWidth * 0.02).clamp(8.0, 14.0);
+    // Smaller border radius and shadow for compact look
+    final borderRadius = (screenWidth * 0.03).clamp(
+      12.0,
+      18.0,
+    ); // REDUCED from 0.05 and 22-28 to 0.03 and 12-18
+    final shadowBlurRadius = (screenWidth * 0.015).clamp(
+      4.0,
+      8.0,
+    ); // REDUCED from 0.02 and 8-14 to 0.015 and 4-8
 
     return Center(
       child: Container(

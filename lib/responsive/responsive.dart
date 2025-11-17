@@ -1,5 +1,4 @@
 import 'package:flutter/widgets.dart';
-import 'dart:html' as html;
 import 'package:flutter/foundation.dart';
 
 class ResponsiveInfo {
@@ -155,7 +154,10 @@ class ResponsiveBuilder extends StatelessWidget {
         final viewportHeight = media?.size.height ?? constraints.maxHeight;
 
         // Get physical screen dimensions (zoom-independent)
-        final physicalDimensions = _getPhysicalScreenDimensions();
+        final physicalDimensions = _getPhysicalScreenDimensions(
+          viewportWidth,
+          viewportHeight,
+        );
         final physicalWidth = physicalDimensions['width'] ?? viewportWidth;
         final physicalHeight = physicalDimensions['height'] ?? viewportHeight;
 
@@ -186,27 +188,18 @@ class ResponsiveBuilder extends StatelessWidget {
   }
 
   // Get physical screen dimensions independent of browser zoom
-  Map<String, double> _getPhysicalScreenDimensions() {
+  Map<String, double> _getPhysicalScreenDimensions(
+    double viewportWidth,
+    double viewportHeight,
+  ) {
     if (kIsWeb) {
-      try {
-        final screenWidth = html.window.screen?.width?.toDouble() ?? 0.0;
-        final screenHeight = html.window.screen?.height?.toDouble() ?? 0.0;
-
-        // Fallback to window.outerWidth/outerHeight if screen dimensions are not available
-        final windowWidth = html.window.outerWidth.toDouble();
-        final windowHeight = html.window.outerHeight.toDouble();
-
-        return {
-          'width': screenWidth > 0 ? screenWidth : windowWidth,
-          'height': screenHeight > 0 ? screenHeight : windowHeight,
-        };
-      } catch (e) {
-        // Fallback for any web platform issues
-        return {'width': 1024.0, 'height': 768.0};
-      }
+      // For web platform, we can't access screen dimensions without dart:html
+      // So we'll use viewport dimensions as they are the best we can get
+      return {'width': viewportWidth, 'height': viewportHeight};
     } else {
-      // For non-web platforms, return default values
-      return {'width': 1024.0, 'height': 768.0};
+      // For mobile/desktop platforms, use viewport dimensions as the source of truth
+      // since there's no browser zoom factor to worry about
+      return {'width': viewportWidth, 'height': viewportHeight};
     }
   }
 

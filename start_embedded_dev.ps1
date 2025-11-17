@@ -1,4 +1,4 @@
-# start_embedded_dev.ps1
+﻿# start_embedded_dev.ps1
 # Starting Arignar Embedded Development Environment
 
 # Function to cleanup background processes
@@ -68,10 +68,10 @@ Write-Host "Embedded Portal: http://localhost:60494" -ForegroundColor Blue
 Write-Host "Local Development Portal: http://localhost:60494/sample.html" -ForegroundColor Blue
 Write-Host ""
 Write-Host "Tips:" -ForegroundColor Yellow
-Write-Host "  • Use http://localhost:60494/sample.html for testing embedded integration"
-Write-Host "  • Use http://localhost:5000 for direct Flutter development"
-Write-Host "  • Hot reload works on the Flutter server"
-Write-Host "  • Press Ctrl+C to stop both servers"
+Write-Host "  â€¢ Use http://localhost:60494/sample.html for testing embedded integration"
+Write-Host "  â€¢ Use http://localhost:5000 for direct Flutter development"
+Write-Host "  â€¢ Hot reload works on the Flutter server"
+Write-Host "  â€¢ Press Ctrl+C to stop both servers"
 Write-Host ""
 
 # Wait for user to stop the servers
@@ -86,3 +86,4 @@ try {
 } catch {
     Cleanup
 }
+

@@ -119,6 +119,10 @@ class _EmbeddedAwareSimpleTaskState extends State<_EmbeddedAwareSimpleTask> {
   bool? isCurrentAnswerCorrect;
   bool isLoaded = false;
 
+  // NEW: Store answers for each question to remember selections
+  Map<int, int> questionAnswers = {}; // questionIndex -> selectedOptionIndex
+  Map<int, bool> questionCorrectness = {}; // questionIndex -> isCorrect
+
   @override
   void initState() {
     super.initState();
@@ -186,6 +190,10 @@ class _EmbeddedAwareSimpleTaskState extends State<_EmbeddedAwareSimpleTask> {
     setState(() {
       selectedOptionIndex = index;
       isCurrentAnswerCorrect = index == (currentLesson!['correctIndex'] as int);
+
+      // Store the answer for this question
+      questionAnswers[currentLessonIndex] = index;
+      questionCorrectness[currentLessonIndex] = isCurrentAnswerCorrect!;
     });
 
     // Show feedback popup after selection
@@ -312,163 +320,164 @@ class _EmbeddedAwareSimpleTaskState extends State<_EmbeddedAwareSimpleTask> {
     // Responsive sizing based on screen dimensions
     final isCompactScreen = screenWidth < 400 || screenHeight < 600;
 
-    // Adaptive dimensions - COMPACT SIZES
-    final basePadding = isCompactScreen
-        ? 10.0
-        : (isMobile ? 14.0 : 16.0); // Reduced
-    final iconSize = isCompactScreen
-        ? 38.0
-        : (isMobile ? 45.0 : 52.0); // Reduced
-    final iconInnerSize = isCompactScreen
-        ? 20.0
-        : (isMobile ? 24.0 : 28.0); // Reduced
+    // Adaptive dimensions - MATCHING THEIR LESSON THEME SIZES
+    // bodySmall=12, bodyMedium=14, bodyLarge=16, titleMedium=18
+    final basePadding = isCompactScreen ? 10.0 : (isMobile ? 14.0 : 16.0);
+    final iconSize = isCompactScreen ? 36.0 : (isMobile ? 42.0 : 48.0);
+    final iconInnerSize = isCompactScreen ? 18.0 : (isMobile ? 22.0 : 26.0);
     final titleFontSize = isCompactScreen
-        ? 16.0
-        : (isMobile ? 20.0 : 22.0); // Reduced
+        ? 14.0 // bodyMedium (14) - matches their theme
+        : (isMobile ? 16.0 : 18.0); // bodyLarge (16) / titleMedium (18)
     final labelFontSize = isCompactScreen
-        ? 11.0
-        : (isMobile ? 13.0 : 14.0); // Reduced
+        ? 10.0 // labelSmall (10) - matches their theme
+        : (isMobile ? 12.0 : 12.0); // bodySmall (12) - matches their theme
     final answerFontSize = isCompactScreen
-        ? 12.0
-        : (isMobile ? 14.0 : 15.0); // Reduced
-    final buttonHeight = isCompactScreen
-        ? 38.0
-        : (isMobile ? 42.0 : 46.0); // Reduced
+        ? 12.0 // bodySmall (12) - matches their theme
+        : (isMobile ? 14.0 : 16.0); // bodyMedium (14) / bodyLarge (16)
+    final buttonHeight = isCompactScreen ? 38.0 : (isMobile ? 42.0 : 46.0);
     final buttonFontSize = isCompactScreen
-        ? 13.0
-        : (isMobile ? 15.0 : 16.0); // Reduced
-    final spacing = isCompactScreen ? 6.0 : (isMobile ? 8.0 : 10.0); // Reduced
+        ? 12.0 // bodySmall (12) - matches their theme
+        : (isMobile ? 14.0 : 16.0); // bodyMedium (14) / bodyLarge (16)
+    final spacing = isCompactScreen ? 6.0 : (isMobile ? 8.0 : 10.0);
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Scrollable content area
+        // Scrollable content area with ALWAYS VISIBLE scrollbar (matching their pattern)
         Flexible(
-          child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            padding: EdgeInsets.all(basePadding),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Close indicator for mobile
-                if (isMobile) ...[
-                  Container(
-                    width: 32,
-                    height: 3,
-                    margin: EdgeInsets.only(bottom: spacing),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[300],
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                  SizedBox(height: spacing * 0.5),
-                ],
-
-                // Feedback icon
-                Container(
-                  width: iconSize,
-                  height: iconSize,
-                  decoration: BoxDecoration(
-                    color: isCorrect
-                        ? const Color(0xFF4CAF50).withOpacity(0.15)
-                        : const Color(0xFFE53935).withOpacity(0.15),
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: isCorrect
-                            ? const Color(0xFF4CAF50).withOpacity(0.2)
-                            : const Color(0xFFE53935).withOpacity(0.2),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
+          child: Scrollbar(
+            thumbVisibility: true, // Always visible - matches their pattern
+            trackVisibility:
+                true, // Track always visible - matches their pattern
+            interactive: true, // Interactive scrollbar
+            thickness: 4.0, // Reduced scrollbar width
+            radius: const Radius.circular(2.0), // Rounded scrollbar
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: EdgeInsets.all(basePadding),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Close indicator for mobile
+                  if (isMobile) ...[
+                    Container(
+                      width: 32,
+                      height: 3,
+                      margin: EdgeInsets.only(bottom: spacing),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(2),
                       ),
-                    ],
-                  ),
-                  child: Icon(
-                    isCorrect
-                        ? Icons.check_circle_rounded
-                        : Icons.error_rounded,
-                    color: isCorrect
-                        ? const Color(0xFF43A047)
-                        : const Color(0xFFD32F2F),
-                    size: iconInnerSize,
-                  ),
-                ),
-
-                SizedBox(height: spacing * 1.2),
-
-                // Title
-                Text(
-                  isCorrect
-                      ? _getRandomCorrectMessage()
-                      : 'Oops! That\'s not correct.',
-                  style: TextStyle(
-                    fontSize: titleFontSize,
-                    fontWeight: FontWeight.bold,
-                    color: isCorrect
-                        ? const Color(0xFF43A047)
-                        : const Color(0xFFD32F2F),
-                    letterSpacing: 0.5,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-
-                // Wrong answer content
-                if (!isCorrect) ...[
-                  SizedBox(height: spacing * 1.5),
-
-                  // Correct answer label
-                  Text(
-                    'Correct answer is:',
-                    style: TextStyle(
-                      fontSize: labelFontSize,
-                      color: const Color(0xFF757575),
-                      fontWeight: FontWeight.w600,
                     ),
-                    textAlign: TextAlign.center,
-                  ),
+                    SizedBox(height: spacing * 0.5),
+                  ],
 
-                  SizedBox(height: spacing),
-
-                  // Auto-expanding correct answer container
+                  // Feedback icon
                   Container(
-                    width: double.infinity,
-                    padding: EdgeInsets.symmetric(
-                      horizontal: basePadding * 1.2,
-                      vertical: basePadding * 0.8,
-                    ),
+                    width: iconSize,
+                    height: iconSize,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF4CAF50).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: const Color(0xFF4CAF50).withOpacity(0.3),
-                        width: 1.5,
-                      ),
+                      color: isCorrect
+                          ? const Color(0xFF4CAF50).withOpacity(0.15)
+                          : const Color(0xFFE53935).withOpacity(0.15),
+                      shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF4CAF50).withOpacity(0.1),
+                          color: isCorrect
+                              ? const Color(0xFF4CAF50).withOpacity(0.2)
+                              : const Color(0xFFE53935).withOpacity(0.2),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),
                       ],
                     ),
-                    child: Text(
-                      correctOption,
-                      style: TextStyle(
-                        fontSize: answerFontSize,
-                        color: const Color(0xFF43A047),
-                        fontWeight: FontWeight.w600,
-                        height: 1.4, // Good line spacing for Tamil text
-                      ),
-                      textAlign: TextAlign.left,
-                      softWrap: true, // Enable text wrapping
-                      maxLines: null, // No line limit
-                      overflow: TextOverflow.visible, // No clipping
+                    child: Icon(
+                      isCorrect
+                          ? Icons.check_circle_rounded
+                          : Icons.error_rounded,
+                      color: isCorrect
+                          ? const Color(0xFF43A047)
+                          : const Color(0xFFD32F2F),
+                      size: iconInnerSize,
                     ),
                   ),
-                ],
 
-                SizedBox(height: spacing * 2),
-              ],
+                  SizedBox(height: spacing * 1.2),
+
+                  // Title
+                  Text(
+                    isCorrect
+                        ? _getRandomCorrectMessage()
+                        : 'Oops! That\'s not correct.',
+                    style: TextStyle(
+                      fontSize: titleFontSize,
+                      fontWeight: FontWeight.bold,
+                      color: isCorrect
+                          ? const Color(0xFF43A047)
+                          : const Color(0xFFD32F2F),
+                      letterSpacing: 0.5,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+
+                  // Wrong answer content
+                  if (!isCorrect) ...[
+                    SizedBox(height: spacing * 1.5),
+
+                    // Correct answer label
+                    Text(
+                      'Correct answer is:',
+                      style: TextStyle(
+                        fontSize: labelFontSize,
+                        color: const Color(0xFF757575),
+                        fontWeight: FontWeight.w600,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+
+                    SizedBox(height: spacing),
+
+                    // Auto-expanding correct answer container
+                    Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: basePadding * 1.2,
+                        vertical: basePadding * 0.8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF4CAF50).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: const Color(0xFF4CAF50).withOpacity(0.3),
+                          width: 1.5,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF4CAF50).withOpacity(0.1),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Text(
+                        correctOption,
+                        style: TextStyle(
+                          fontSize: answerFontSize,
+                          color: const Color(0xFF43A047),
+                          fontWeight: FontWeight.w600,
+                          height: 1.4, // Good line spacing for Tamil text
+                        ),
+                        textAlign: TextAlign.left,
+                        softWrap: true, // Enable text wrapping
+                        maxLines: null, // No line limit
+                        overflow: TextOverflow.visible, // No clipping
+                      ),
+                    ),
+                  ],
+
+                  SizedBox(height: spacing * 2),
+                ],
+              ),
             ),
           ),
         ),
@@ -509,7 +518,11 @@ class _EmbeddedAwareSimpleTaskState extends State<_EmbeddedAwareSimpleTask> {
               child: InkWell(
                 onTap: () {
                   Navigator.pop(context);
-                  _nextQuestion();
+                  // FIXED: Only go to next question if answer is correct
+                  if (isCorrect) {
+                    _nextQuestion();
+                  }
+                  // If wrong answer, stay on same question
                 },
                 borderRadius: BorderRadius.circular(16),
                 child: Container(
@@ -552,8 +565,9 @@ class _EmbeddedAwareSimpleTaskState extends State<_EmbeddedAwareSimpleTask> {
       if (currentLessonIndex < lessons.length - 1) {
         setState(() {
           currentLessonIndex++;
-          selectedOptionIndex = null;
-          isCurrentAnswerCorrect = null;
+          // Restore previous selection if exists, otherwise null
+          selectedOptionIndex = questionAnswers[currentLessonIndex];
+          isCurrentAnswerCorrect = questionCorrectness[currentLessonIndex];
         });
       } else {
         widget.onLessonComplete();
@@ -565,8 +579,9 @@ class _EmbeddedAwareSimpleTaskState extends State<_EmbeddedAwareSimpleTask> {
     if (currentLessonIndex > 0) {
       setState(() {
         currentLessonIndex--;
-        selectedOptionIndex = null;
-        isCurrentAnswerCorrect = null;
+        // Restore previous selection if exists, otherwise null
+        selectedOptionIndex = questionAnswers[currentLessonIndex];
+        isCurrentAnswerCorrect = questionCorrectness[currentLessonIndex];
       });
     }
   }
@@ -615,39 +630,48 @@ class _EmbeddedAwareSimpleTaskState extends State<_EmbeddedAwareSimpleTask> {
                           ? 20.0 // Medium screens get generous padding
                           : 24.0; // Large screens get maximum padding
 
-                      return SingleChildScrollView(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: adaptivePadding,
-                          vertical: adaptivePadding,
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            // Intelligent adaptive question container
-                            QuestionContainer(
-                              question: currentLesson?['question'] ?? '',
-                              onSpeakerTap: () {},
-                            ),
-                            SizedBox(height: adaptivePadding),
-                            if (currentLesson?['image'] != null) ...[
-                              QuizImage(
-                                imageUrl: currentLesson!['image'] as String,
+                      return Scrollbar(
+                        thumbVisibility:
+                            true, // Always visible - matches their pattern
+                        trackVisibility:
+                            true, // Track always visible - matches their pattern
+                        interactive: true, // Interactive scrollbar
+                        thickness: 4.0, // Reduced scrollbar width
+                        radius: const Radius.circular(2.0), // Rounded scrollbar
+                        child: SingleChildScrollView(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: adaptivePadding,
+                            vertical: adaptivePadding,
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              // Intelligent adaptive question container
+                              QuestionContainer(
+                                question: currentLesson?['question'] ?? '',
+                                onSpeakerTap: () {},
                               ),
                               SizedBox(height: adaptivePadding),
-                            ],
-                            if (currentLesson?['options'] != null)
-                              QuizOptions(
-                                options: List<String>.from(
-                                  currentLesson!['options'],
+                              if (currentLesson?['image'] != null) ...[
+                                QuizImage(
+                                  imageUrl: currentLesson!['image'] as String,
                                 ),
-                                selectedIndex: selectedOptionIndex,
-                                isAnswerCorrect: isCurrentAnswerCorrect,
-                                correctIndex:
-                                    currentLesson!['correctIndex'] as int,
-                                onOptionSelected: _onOptionSelected,
-                              ),
-                            SizedBox(height: adaptivePadding * 1.5),
-                          ],
+                                SizedBox(height: adaptivePadding),
+                              ],
+                              if (currentLesson?['options'] != null)
+                                QuizOptions(
+                                  options: List<String>.from(
+                                    currentLesson!['options'],
+                                  ),
+                                  selectedIndex: selectedOptionIndex,
+                                  isAnswerCorrect: isCurrentAnswerCorrect,
+                                  correctIndex:
+                                      currentLesson!['correctIndex'] as int,
+                                  onOptionSelected: _onOptionSelected,
+                                ),
+                              SizedBox(height: adaptivePadding * 1.5),
+                            ],
+                          ),
                         ),
                       );
                     },

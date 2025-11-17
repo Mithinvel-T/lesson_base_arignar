@@ -29,8 +29,14 @@ class QuizOptions extends StatelessWidget {
 
         // Fully responsive spacing - percentage based for all screens
         final spacing = screenWidth * 0.015; // 1.5% of screen width
-        final borderRadius = screenWidth * 0.025; // 2.5% of screen width
         final verticalPadding = screenHeight * 0.008; // 0.8% of screen height
+
+        // Check if mobile for border radius calculation
+        final isMobile = screenWidth < 600;
+        // Lighter border radius - smaller for mobile, slightly larger for desktop
+        final borderRadius = isMobile
+            ? 8.0  // Light radius for mobile (was 2.5% of width)
+            : 12.0; // Slightly more radius for desktop
 
         // OPTIONS FONT SIZE - MUCH SMALLER than question
         final questionLength =
@@ -97,7 +103,7 @@ class QuizOptions extends StatelessWidget {
         );
 
         // Use ListView for mobile, Wrap for larger screens
-        final isMobile = screenWidth < 600;
+        // isMobile already defined above
 
         // Mobile: Full width for ListView, Tablet/Desktop: 42% width for Wrap
         final containerWidth = isMobile
