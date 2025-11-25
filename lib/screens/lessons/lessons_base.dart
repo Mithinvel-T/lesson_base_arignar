@@ -185,6 +185,7 @@ abstract class LessonsBaseState<T extends LessonsBase> extends State<T> {
           onExitPressed: widget.onExitPressed,
           onPrevPressed: () => previousQuestion(),
           onNextPressed: () => nextQuestion(),
+          onSkipPressed: () => skipQuestion(),
           onJumpToQuestion: widget.onJumpToQuestion,
         );
       },
@@ -212,6 +213,11 @@ abstract class LessonsBaseState<T extends LessonsBase> extends State<T> {
     if (currentLessonIndex == lessons.length - 1) {
       widget.onLessonComplete();
     }
+  }
+
+  void skipQuestion() {
+    // Skip to next question without requiring answer
+    nextQuestion();
   }
 
   void previousQuestion() {

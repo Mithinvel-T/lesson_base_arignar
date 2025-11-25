@@ -15,6 +15,7 @@ class AdaptiveLessonLayout extends StatelessWidget {
     this.onExitPressed,
     this.onPrevPressed,
     this.onNextPressed,
+    this.onSkipPressed,
     this.onJumpToQuestion,
   });
 
@@ -25,6 +26,7 @@ class AdaptiveLessonLayout extends StatelessWidget {
   final VoidCallback? onExitPressed;
   final VoidCallback? onPrevPressed;
   final VoidCallback? onNextPressed;
+  final VoidCallback? onSkipPressed;
   final VoidCallback? onJumpToQuestion;
 
   @override
@@ -238,6 +240,12 @@ class AdaptiveLessonLayout extends StatelessWidget {
               onPressed: onPrevPressed,
               size: buttonSize,
             ),
+            _buildSkipButton(
+              context: context,
+              responsive: responsive,
+              onPressed: onSkipPressed,
+              size: buttonSize,
+            ),
             _buildIconButton(
               context: context,
               responsive: responsive,
@@ -274,6 +282,42 @@ class AdaptiveLessonLayout extends StatelessWidget {
           height: size,
           alignment: Alignment.center,
           child: Icon(icon, color: AppColors.white, size: iconSize),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSkipButton({
+    required BuildContext context,
+    required ResponsiveInfo responsive,
+    required VoidCallback? onPressed,
+    required double size,
+  }) {
+    final borderRadius = size * 0.25;
+    final fontSize = (size * 0.35).clamp(10.0, 14.0);
+
+    return Material(
+      color: AppColors.primaryBlue,
+      borderRadius: BorderRadius.circular(borderRadius),
+      elevation: 2,
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(borderRadius),
+        splashColor: AppColors.white.withOpacity(0.2),
+        child: Container(
+          width: size * 1.2,
+          height: size,
+          alignment: Alignment.center,
+          padding: EdgeInsets.symmetric(horizontal: 4),
+          child: ScalableText(
+            'Skip',
+            style: TextStyle(
+              color: AppColors.white,
+              fontSize: fontSize,
+              fontWeight: FontWeight.w600,
+            ),
+            textAlign: TextAlign.center,
+          ),
         ),
       ),
     );
