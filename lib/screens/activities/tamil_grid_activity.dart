@@ -19,7 +19,9 @@ class _TamilGridActivityState extends State<TamilGridActivity> {
   bool _hasScrollableContent = false;
 
   int currentQuestionIndex = 0;
-  Map<String, String?> userAnswers = {};
+  Map<String, String?> userAnswers = {}; // Current question answers
+  Map<int, Map<String, String?>> savedAnswers = {}; // Save answers per question index
+  Map<int, bool> savedWrongAnswerFlags = {}; // Save wrong answer flag per question
   bool _dialogButtonClicked = false; // Flag to track dialog button click
   bool _hasWrongAnswer = false; // Track if wrong answer was shown
 
@@ -427,15 +429,11 @@ class _TamilGridActivityState extends State<TamilGridActivity> {
                 onPressed: () {
                   _dialogButtonClicked = true; // Mark that button was clicked
                   Navigator.pop(context, 'button_clicked'); // Pass result
-                  // Only move to next question if answer is correct
-                  if (correct) {
-                    // Small delay to ensure dialog closes before moving to next
-                    Future.delayed(const Duration(milliseconds: 100), () {
-                      _nextQuestion();
-                    });
-                  }
-                  // If wrong, just close the dialog (don't move to next)
-                  // User can now select only correct answers
+                  // Allow moving to next question for both correct and wrong answers
+                  // Small delay to ensure dialog closes before moving to next
+                  Future.delayed(const Duration(milliseconds: 100), () {
+                    _nextQuestion();
+                  });
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: correct ? Colors.green : Colors.red,
@@ -448,7 +446,7 @@ class _TamilGridActivityState extends State<TamilGridActivity> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: Text(correct ? 'Continue' : 'OK'),
+                child: Text(correct ? 'Continue' : 'Next'),
               ),
             ),
           ],
@@ -456,9 +454,9 @@ class _TamilGridActivityState extends State<TamilGridActivity> {
       },
     ).then((result) {
       // Handle dialog dismissal (when tapping outside)
-      // Only move to next if answer was correct and button wasn't clicked
-      // (button click already handles navigation)
-      if (correct && result != 'button_clicked' && !_dialogButtonClicked) {
+      // Move to next question if button wasn't clicked (tapped outside)
+      // Button click already handles navigation
+      if (result != 'button_clicked' && !_dialogButtonClicked) {
         Future.delayed(const Duration(milliseconds: 100), () {
           _nextQuestion();
         });
