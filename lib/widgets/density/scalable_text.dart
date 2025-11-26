@@ -73,3 +73,4 @@ class ScalableText extends StatelessWidget {
     );
   }
 }
+

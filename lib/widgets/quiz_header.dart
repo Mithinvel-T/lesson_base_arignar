@@ -3,7 +3,6 @@ import 'package:lesson_base_arignar/theme/app_colors.dart';
 import 'package:lesson_base_arignar/theme/app_text_styles.dart';
 import 'package:lesson_base_arignar/widgets/density/scalable_text.dart';
 import 'package:lesson_base_arignar/responsive/responsive.dart';
-import 'package:lesson_base_arignar/screens/activities/tamil_grid_activity.dart';
 
 class QuizHeader extends StatelessWidget {
   const QuizHeader({
@@ -12,12 +11,16 @@ class QuizHeader extends StatelessWidget {
     required this.totalQuestions,
     required this.progressPercentage,
     required this.title,
+    this.showActivityButton = false,
+    this.onActivityPressed,
   });
 
   final int currentQuestion;
   final int totalQuestions;
   final double progressPercentage;
   final String title;
+  final bool showActivityButton;
+  final VoidCallback? onActivityPressed;
 
   @override
   Widget build(BuildContext context) {
@@ -145,55 +148,49 @@ class QuizHeader extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    // Activity button in top right
-                    Builder(
-                      builder: (context) => Material(
-                        color: AppColors.success,
-                        borderRadius: BorderRadius.circular(12),
-                        elevation: 2,
-                        child: InkWell(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const TamilGridActivity(),
-                              ),
-                            );
-                          },
+                    // Activity button in top right (optional)
+                    if (showActivityButton && onActivityPressed != null)
+                      Builder(
+                        builder: (context) => Material(
+                          color: AppColors.success,
                           borderRadius: BorderRadius.circular(12),
-                          child: Container(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: screenWidth < 400 ? 8 : 12,
-                              vertical: screenWidth < 400 ? 6 : 8,
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.auto_awesome_rounded,
-                                  color: AppColors.white,
-                                  size: screenWidth < 400 ? 16 : 18,
-                                ),
-                                if (screenWidth > 400) ...[
-                                  SizedBox(width: 4),
-                                  Text(
-                                    'Activity',
-                                    style: TextStyle(
-                                      color: AppColors.white,
-                                      fontSize:
-                                          (screenWidth < 600 ? 12.0 : 14.0)
-                                              .clamp(10.0, 16.0)
-                                              .toDouble(),
-                                      fontWeight: FontWeight.w600,
-                                    ),
+                          elevation: 2,
+                          child: InkWell(
+                            onTap: onActivityPressed,
+                            borderRadius: BorderRadius.circular(12),
+                            child: Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: screenWidth < 400 ? 8 : 12,
+                                vertical: screenWidth < 400 ? 6 : 8,
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.auto_awesome_rounded,
+                                    color: AppColors.white,
+                                    size: screenWidth < 400 ? 16 : 18,
                                   ),
+                                  if (screenWidth > 400) ...[
+                                    SizedBox(width: 4),
+                                    Text(
+                                      'Activity',
+                                      style: TextStyle(
+                                        color: AppColors.white,
+                                        fontSize:
+                                            (screenWidth < 600 ? 12.0 : 14.0)
+                                                .clamp(10.0, 16.0)
+                                                .toDouble(),
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
                                 ],
-                              ],
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
                   ],
                 ),
 

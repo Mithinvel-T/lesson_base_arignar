@@ -7,6 +7,7 @@ import 'package:lesson_base_arignar/widgets/question_container.dart';
 import 'package:lesson_base_arignar/widgets/quiz_image.dart';
 import 'package:lesson_base_arignar/widgets/quiz_options.dart';
 import 'package:lesson_base_arignar/widgets/quiz_bottom_bar.dart';
+import 'package:lesson_base_arignar/screens/activities/tamil_grid_activity.dart';
 import 'responsive/responsive.dart';
 
 void main() {
@@ -614,6 +615,15 @@ class _EmbeddedAwareSimpleTaskState extends State<_EmbeddedAwareSimpleTask> {
                   progressPercentage:
                       ((currentLessonIndex + 1) / lessons.length) * 100,
                   title: currentLesson?['title'] ?? '',
+                  showActivityButton: true,
+                  onActivityPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const TamilGridActivity(),
+                      ),
+                    );
+                  },
                 ),
                 Expanded(
                   child: LayoutBuilder(

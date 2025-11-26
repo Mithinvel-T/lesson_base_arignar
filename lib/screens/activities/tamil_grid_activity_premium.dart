@@ -12,17 +12,18 @@ class TamilGridActivity extends StatefulWidget {
   State<TamilGridActivity> createState() => _TamilGridActivityState();
 }
 
-class _TamilGridActivityState extends State<TamilGridActivity> with TickerProviderStateMixin {
+class _TamilGridActivityState extends State<TamilGridActivity>
+    with TickerProviderStateMixin {
   final List<LetterQuestion> questions = LetterQuestionsData.questions;
-  
+
   int currentQuestionIndex = 0;
   Map<String, String?> userAnswers = {};
-  
+
   // Animation Controllers for Premium UI
   late AnimationController _progressController;
   late AnimationController _cardController;
   late AnimationController _letterController;
-  
+
   late Animation<double> _progressAnimation;
   late Animation<double> _cardAnimation;
   late Animation<double> _letterAnimation;
@@ -30,30 +31,45 @@ class _TamilGridActivityState extends State<TamilGridActivity> with TickerProvid
   @override
   void initState() {
     super.initState();
-    
+
     // Initialize animations
-    _progressController = AnimationController(duration: const Duration(milliseconds: 800), vsync: this);
-    _cardController = AnimationController(duration: const Duration(milliseconds: 600), vsync: this);
-    _letterController = AnimationController(duration: const Duration(milliseconds: 400), vsync: this);
-    
+    _progressController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+    _cardController = AnimationController(
+      duration: const Duration(milliseconds: 600),
+      vsync: this,
+    );
+    _letterController = AnimationController(
+      duration: const Duration(milliseconds: 400),
+      vsync: this,
+    );
+
     _progressAnimation = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _progressController, curve: Curves.easeInOut)
+      CurvedAnimation(parent: _progressController, curve: Curves.easeInOut),
     );
     _cardAnimation = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _cardController, curve: Curves.elasticOut)
+      CurvedAnimation(parent: _cardController, curve: Curves.elasticOut),
     );
     _letterAnimation = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _letterController, curve: Curves.bounceInOut)
+      CurvedAnimation(parent: _letterController, curve: Curves.bounceInOut),
     );
-    
+
     _initializeQuestion();
     _startAnimations();
   }
 
   void _startAnimations() {
     _cardController.forward();
-    Future.delayed(const Duration(milliseconds: 200), () => _progressController.forward());
-    Future.delayed(const Duration(milliseconds: 400), () => _letterController.forward());
+    Future.delayed(
+      const Duration(milliseconds: 200),
+      () => _progressController.forward(),
+    );
+    Future.delayed(
+      const Duration(milliseconds: 400),
+      () => _letterController.forward(),
+    );
   }
 
   @override
@@ -76,7 +92,7 @@ class _TamilGridActivityState extends State<TamilGridActivity> with TickerProvid
     setState(() {
       userAnswers['${letter}_$letterIndex'] = category;
     });
-    
+
     // Add haptic feedback and animation
     _playSelectionAnimation();
   }
@@ -101,7 +117,10 @@ class _TamilGridActivityState extends State<TamilGridActivity> with TickerProvid
   // Premium responsive spacing
   double _getResponsiveSpacing(BuildContext context, double baseSpacing) {
     final screenWidth = MediaQuery.of(context).size.width;
-    return (baseSpacing * (screenWidth / 375)).clamp(baseSpacing * 0.7, baseSpacing * 1.8);
+    return (baseSpacing * (screenWidth / 375)).clamp(
+      baseSpacing * 0.7,
+      baseSpacing * 1.8,
+    );
   }
 
   void _verifyAnswers() {
@@ -154,7 +173,9 @@ class _TamilGridActivityState extends State<TamilGridActivity> with TickerProvid
             ),
           ],
         ),
-        backgroundColor: isSuccess ? const Color(0xFF4CAF50) : const Color(0xFF2196F3),
+        backgroundColor: isSuccess
+            ? const Color(0xFF4CAF50)
+            : const Color(0xFF2196F3),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         margin: EdgeInsets.all(_getResponsiveSpacing(context, 16)),
@@ -164,7 +185,10 @@ class _TamilGridActivityState extends State<TamilGridActivity> with TickerProvid
     );
   }
 
-  void _showPremiumResultDialog(bool correct, Map<String, String> wrongAnswers) {
+  void _showPremiumResultDialog(
+    bool correct,
+    Map<String, String> wrongAnswers,
+  ) {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -195,7 +219,9 @@ class _TamilGridActivityState extends State<TamilGridActivity> with TickerProvid
                         Colors.white,
                       ],
               ),
-              borderRadius: BorderRadius.circular(_getResponsiveSpacing(context, 24)),
+              borderRadius: BorderRadius.circular(
+                _getResponsiveSpacing(context, 24),
+              ),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.15),
@@ -218,25 +244,35 @@ class _TamilGridActivityState extends State<TamilGridActivity> with TickerProvid
                       gradient: LinearGradient(
                         colors: correct
                             ? [const Color(0xFF4CAF50), const Color(0xFF66BB6A)]
-                            : [const Color(0xFFFF7043), const Color(0xFFFF8A65)],
+                            : [
+                                const Color(0xFFFF7043),
+                                const Color(0xFFFF8A65),
+                              ],
                       ),
-                      borderRadius: BorderRadius.circular(_getResponsiveSpacing(context, 40)),
+                      borderRadius: BorderRadius.circular(
+                        _getResponsiveSpacing(context, 40),
+                      ),
                       boxShadow: [
                         BoxShadow(
-                          color: (correct ? const Color(0xFF4CAF50) : const Color(0xFFFF7043))
-                              .withOpacity(0.4),
+                          color:
+                              (correct
+                                      ? const Color(0xFF4CAF50)
+                                      : const Color(0xFFFF7043))
+                                  .withOpacity(0.4),
                           blurRadius: 20,
                           offset: const Offset(0, 8),
                         ),
                       ],
                     ),
                     child: Icon(
-                      correct ? Icons.celebration_rounded : Icons.emoji_emotions_outlined,
+                      correct
+                          ? Icons.celebration_rounded
+                          : Icons.emoji_emotions_outlined,
                       color: Colors.white,
                       size: _getResponsiveFont(context, 40),
                     ),
                   ),
-                  
+
                   SizedBox(height: _getResponsiveSpacing(context, 20)),
 
                   // Result text with premium typography
@@ -246,15 +282,19 @@ class _TamilGridActivityState extends State<TamilGridActivity> with TickerProvid
                     style: TextStyle(
                       fontSize: _getResponsiveFont(context, 24),
                       fontWeight: FontWeight.bold,
-                      color: correct ? const Color(0xFF2E7D32) : const Color(0xFFD84315),
+                      color: correct
+                          ? const Color(0xFF2E7D32)
+                          : const Color(0xFFD84315),
                       letterSpacing: 0.5,
                     ),
                   ),
-                  
+
                   SizedBox(height: _getResponsiveSpacing(context, 8)),
-                  
+
                   Text(
-                    correct ? 'நீங்கள் மிகச் சிறப்பாக செய்தீர்கள்!' : 'மீண்டும் முயற்சி செய்யுங்கள்!',
+                    correct
+                        ? 'நீங்கள் மிகச் சிறப்பாக செய்தீர்கள்!'
+                        : 'மீண்டும் முயற்சி செய்யுங்கள்!',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: _getResponsiveFont(context, 16),
@@ -267,13 +307,20 @@ class _TamilGridActivityState extends State<TamilGridActivity> with TickerProvid
                   if (!correct && wrongAnswers.isNotEmpty) ...[
                     SizedBox(height: _getResponsiveSpacing(context, 20)),
                     Container(
-                      padding: EdgeInsets.all(_getResponsiveSpacing(context, 16)),
+                      padding: EdgeInsets.all(
+                        _getResponsiveSpacing(context, 16),
+                      ),
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
                           colors: [Color(0xFFF0F9FF), Color(0xFFE8F5E8)],
                         ),
-                        borderRadius: BorderRadius.circular(_getResponsiveSpacing(context, 16)),
-                        border: Border.all(color: const Color(0xFF4CAF50), width: 2),
+                        borderRadius: BorderRadius.circular(
+                          _getResponsiveSpacing(context, 16),
+                        ),
+                        border: Border.all(
+                          color: const Color(0xFF4CAF50),
+                          width: 2,
+                        ),
                       ),
                       child: Column(
                         children: [
@@ -285,7 +332,9 @@ class _TamilGridActivityState extends State<TamilGridActivity> with TickerProvid
                                 color: const Color(0xFF2E7D32),
                                 size: _getResponsiveFont(context, 20),
                               ),
-                              SizedBox(width: _getResponsiveSpacing(context, 8)),
+                              SizedBox(
+                                width: _getResponsiveSpacing(context, 8),
+                              ),
                               Text(
                                 'சரியான பதில்:',
                                 style: TextStyle(
@@ -300,26 +349,43 @@ class _TamilGridActivityState extends State<TamilGridActivity> with TickerProvid
                           ...wrongAnswers.entries.map((entry) {
                             String categoryName = entry.value == 'uyir'
                                 ? 'உயிர்'
-                                : entry.value == 'mei' ? 'மெய்' : 'உயிர்மெய்';
+                                : entry.value == 'mei'
+                                ? 'மெய்'
+                                : 'உயிர்மெய்';
                             return Padding(
-                              padding: EdgeInsets.symmetric(vertical: _getResponsiveSpacing(context, 2)),
+                              padding: EdgeInsets.symmetric(
+                                vertical: _getResponsiveSpacing(context, 2),
+                              ),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Container(
                                     padding: EdgeInsets.symmetric(
-                                      horizontal: _getResponsiveSpacing(context, 12),
-                                      vertical: _getResponsiveSpacing(context, 6),
+                                      horizontal: _getResponsiveSpacing(
+                                        context,
+                                        12,
+                                      ),
+                                      vertical: _getResponsiveSpacing(
+                                        context,
+                                        6,
+                                      ),
                                     ),
                                     decoration: BoxDecoration(
                                       color: Colors.white,
-                                      borderRadius: BorderRadius.circular(_getResponsiveSpacing(context, 8)),
-                                      border: Border.all(color: const Color(0xFF4CAF50)),
+                                      borderRadius: BorderRadius.circular(
+                                        _getResponsiveSpacing(context, 8),
+                                      ),
+                                      border: Border.all(
+                                        color: const Color(0xFF4CAF50),
+                                      ),
                                     ),
                                     child: Text(
                                       '${entry.key} → $categoryName',
                                       style: TextStyle(
-                                        fontSize: _getResponsiveFont(context, 14),
+                                        fontSize: _getResponsiveFont(
+                                          context,
+                                          14,
+                                        ),
                                         fontWeight: FontWeight.w600,
                                         color: const Color(0xFF2E7D32),
                                       ),
@@ -344,13 +410,21 @@ class _TamilGridActivityState extends State<TamilGridActivity> with TickerProvid
                       gradient: LinearGradient(
                         colors: correct
                             ? [const Color(0xFF4CAF50), const Color(0xFF66BB6A)]
-                            : [const Color(0xFF2196F3), const Color(0xFF42A5F5)],
+                            : [
+                                const Color(0xFF2196F3),
+                                const Color(0xFF42A5F5),
+                              ],
                       ),
-                      borderRadius: BorderRadius.circular(_getResponsiveSpacing(context, 16)),
+                      borderRadius: BorderRadius.circular(
+                        _getResponsiveSpacing(context, 16),
+                      ),
                       boxShadow: [
                         BoxShadow(
-                          color: (correct ? const Color(0xFF4CAF50) : const Color(0xFF2196F3))
-                              .withOpacity(0.3),
+                          color:
+                              (correct
+                                      ? const Color(0xFF4CAF50)
+                                      : const Color(0xFF2196F3))
+                                  .withOpacity(0.3),
                           blurRadius: 12,
                           offset: const Offset(0, 6),
                         ),
@@ -365,19 +439,27 @@ class _TamilGridActivityState extends State<TamilGridActivity> with TickerProvid
                             _nextQuestion();
                           }
                         },
-                        borderRadius: BorderRadius.circular(_getResponsiveSpacing(context, 16)),
+                        borderRadius: BorderRadius.circular(
+                          _getResponsiveSpacing(context, 16),
+                        ),
                         child: Center(
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Icon(
-                                correct ? Icons.arrow_forward_rounded : Icons.refresh_rounded,
+                                correct
+                                    ? Icons.arrow_forward_rounded
+                                    : Icons.refresh_rounded,
                                 color: Colors.white,
                                 size: _getResponsiveFont(context, 20),
                               ),
-                              SizedBox(width: _getResponsiveSpacing(context, 8)),
+                              SizedBox(
+                                width: _getResponsiveSpacing(context, 8),
+                              ),
                               Text(
-                                correct ? 'அடுத்த கேள்விக்கு செல்லுங்கள்' : 'மீண்டும் முயற்சிக்கவும்',
+                                correct
+                                    ? 'அடுத்த கேள்விக்கு செல்லுங்கள்'
+                                    : 'மீண்டும் முயற்சிக்கவும்',
                                 style: TextStyle(
                                   fontSize: _getResponsiveFont(context, 16),
                                   fontWeight: FontWeight.bold,
@@ -425,7 +507,9 @@ class _TamilGridActivityState extends State<TamilGridActivity> with TickerProvid
             gradient: const LinearGradient(
               colors: [Color(0xFFFFF8E1), Color(0xFFE8F5E8), Colors.white],
             ),
-            borderRadius: BorderRadius.circular(_getResponsiveSpacing(context, 24)),
+            borderRadius: BorderRadius.circular(
+              _getResponsiveSpacing(context, 24),
+            ),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -469,7 +553,9 @@ class _TamilGridActivityState extends State<TamilGridActivity> with TickerProvid
                     vertical: _getResponsiveSpacing(context, 12),
                   ),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(_getResponsiveSpacing(context, 12)),
+                    borderRadius: BorderRadius.circular(
+                      _getResponsiveSpacing(context, 12),
+                    ),
                   ),
                 ),
                 child: Text(
@@ -499,7 +585,9 @@ class _TamilGridActivityState extends State<TamilGridActivity> with TickerProvid
     // Professional responsive layout calculations
     final isTablet = screenWidth > 600;
     final isDesktop = screenWidth > 1200;
-    final maxContentWidth = isDesktop ? 800.0 : (isTablet ? screenWidth * 0.8 : screenWidth * 0.95);
+    final maxContentWidth = isDesktop
+        ? 800.0
+        : (isTablet ? screenWidth * 0.8 : screenWidth * 0.95);
     final contentPadding = _getResponsiveSpacing(context, isTablet ? 32 : 20);
 
     return Scaffold(
@@ -534,12 +622,16 @@ class _TamilGridActivityState extends State<TamilGridActivity> with TickerProvid
                           builder: (context, child) => Transform.scale(
                             scale: _cardAnimation.value,
                             child: Container(
-                              padding: EdgeInsets.all(_getResponsiveSpacing(context, 20)),
+                              padding: EdgeInsets.all(
+                                _getResponsiveSpacing(context, 20),
+                              ),
                               decoration: BoxDecoration(
                                 gradient: const LinearGradient(
                                   colors: [Colors.white, Color(0xFFF8F9FA)],
                                 ),
-                                borderRadius: BorderRadius.circular(_getResponsiveSpacing(context, 20)),
+                                borderRadius: BorderRadius.circular(
+                                  _getResponsiveSpacing(context, 20),
+                                ),
                                 boxShadow: [
                                   BoxShadow(
                                     color: Colors.black.withOpacity(0.1),
@@ -549,7 +641,9 @@ class _TamilGridActivityState extends State<TamilGridActivity> with TickerProvid
                                   ),
                                 ],
                                 border: Border.all(
-                                  color: const Color(0xFF2196F3).withOpacity(0.2),
+                                  color: const Color(
+                                    0xFF2196F3,
+                                  ).withOpacity(0.2),
                                   width: 2,
                                 ),
                               ),
@@ -580,7 +674,9 @@ class _TamilGridActivityState extends State<TamilGridActivity> with TickerProvid
                             ),
                             decoration: BoxDecoration(
                               color: Colors.white.withOpacity(0.9),
-                              borderRadius: BorderRadius.circular(_getResponsiveSpacing(context, 12)),
+                              borderRadius: BorderRadius.circular(
+                                _getResponsiveSpacing(context, 12),
+                              ),
                               boxShadow: [
                                 BoxShadow(
                                   color: Colors.black.withOpacity(0.05),
@@ -592,12 +688,16 @@ class _TamilGridActivityState extends State<TamilGridActivity> with TickerProvid
                             child: Column(
                               children: [
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
                                       'கேள்வி ${currentQuestionIndex + 1}/${questions.length}',
                                       style: TextStyle(
-                                        fontSize: _getResponsiveFont(context, 14),
+                                        fontSize: _getResponsiveFont(
+                                          context,
+                                          14,
+                                        ),
                                         fontWeight: FontWeight.w600,
                                         color: const Color(0xFF2196F3),
                                       ),
@@ -605,28 +705,41 @@ class _TamilGridActivityState extends State<TamilGridActivity> with TickerProvid
                                     Text(
                                       '${(progress * 100).toInt()}% முடிந்தது',
                                       style: TextStyle(
-                                        fontSize: _getResponsiveFont(context, 14),
+                                        fontSize: _getResponsiveFont(
+                                          context,
+                                          14,
+                                        ),
                                         fontWeight: FontWeight.w600,
                                         color: const Color(0xFF4CAF50),
                                       ),
                                     ),
                                   ],
                                 ),
-                                SizedBox(height: _getResponsiveSpacing(context, 8)),
+                                SizedBox(
+                                  height: _getResponsiveSpacing(context, 8),
+                                ),
                                 Container(
                                   height: _getResponsiveSpacing(context, 8),
                                   decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(_getResponsiveSpacing(context, 4)),
+                                    borderRadius: BorderRadius.circular(
+                                      _getResponsiveSpacing(context, 4),
+                                    ),
                                     color: const Color(0xFFE3F2FD),
                                   ),
                                   child: FractionallySizedBox(
                                     alignment: Alignment.centerLeft,
-                                    widthFactor: progress * _progressAnimation.value,
+                                    widthFactor:
+                                        progress * _progressAnimation.value,
                                     child: Container(
                                       decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(_getResponsiveSpacing(context, 4)),
+                                        borderRadius: BorderRadius.circular(
+                                          _getResponsiveSpacing(context, 4),
+                                        ),
                                         gradient: const LinearGradient(
-                                          colors: [Color(0xFF2196F3), Color(0xFF42A5F5)],
+                                          colors: [
+                                            Color(0xFF2196F3),
+                                            Color(0xFF42A5F5),
+                                          ],
                                         ),
                                       ),
                                     ),
@@ -641,12 +754,16 @@ class _TamilGridActivityState extends State<TamilGridActivity> with TickerProvid
 
                         // Beautiful word display with sound
                         Container(
-                          padding: EdgeInsets.all(_getResponsiveSpacing(context, 20)),
+                          padding: EdgeInsets.all(
+                            _getResponsiveSpacing(context, 20),
+                          ),
                           decoration: BoxDecoration(
                             gradient: const LinearGradient(
                               colors: [Color(0xFFF3E5F5), Colors.white],
                             ),
-                            borderRadius: BorderRadius.circular(_getResponsiveSpacing(context, 20)),
+                            borderRadius: BorderRadius.circular(
+                              _getResponsiveSpacing(context, 20),
+                            ),
                             border: Border.all(
                               color: const Color(0xFF9C27B0).withOpacity(0.3),
                               width: 2,
@@ -671,12 +788,18 @@ class _TamilGridActivityState extends State<TamilGridActivity> with TickerProvid
                                   letterSpacing: 1,
                                 ),
                               ),
-                              SizedBox(width: _getResponsiveSpacing(context, 12)),
+                              SizedBox(
+                                width: _getResponsiveSpacing(context, 12),
+                              ),
                               Container(
-                                padding: EdgeInsets.all(_getResponsiveSpacing(context, 8)),
+                                padding: EdgeInsets.all(
+                                  _getResponsiveSpacing(context, 8),
+                                ),
                                 decoration: BoxDecoration(
                                   color: const Color(0xFF9C27B0),
-                                  borderRadius: BorderRadius.circular(_getResponsiveSpacing(context, 12)),
+                                  borderRadius: BorderRadius.circular(
+                                    _getResponsiveSpacing(context, 12),
+                                  ),
                                 ),
                                 child: Icon(
                                   Icons.volume_up_rounded,
@@ -710,23 +833,48 @@ class _TamilGridActivityState extends State<TamilGridActivity> with TickerProvid
                             children: [
                               // Premium category chips
                               Column(
-                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
                                 children: [
-                                  _buildPremiumCategoryChip('உயிர்', const Color(0xFF4CAF50)),
-                                  _buildPremiumCategoryChip('மெய்', const Color(0xFF2196F3)),
-                                  _buildPremiumCategoryChip('உயிர்மெய்', const Color(0xFFFF9800)),
+                                  _buildPremiumCategoryChip(
+                                    'உயிர்',
+                                    const Color(0xFF4CAF50),
+                                  ),
+                                  _buildPremiumCategoryChip(
+                                    'மெய்',
+                                    const Color(0xFF2196F3),
+                                  ),
+                                  _buildPremiumCategoryChip(
+                                    'உயிர்மெய்',
+                                    const Color(0xFFFF9800),
+                                  ),
                                 ],
                               ),
 
-                              SizedBox(width: _getResponsiveSpacing(context, 24)),
+                              SizedBox(
+                                width: _getResponsiveSpacing(context, 24),
+                              ),
 
                               // Premium letter grid
                               Column(
-                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
                                 children: [
-                                  _buildPremiumLetterRow(letters, 'uyir', const Color(0xFF4CAF50)),
-                                  _buildPremiumLetterRow(letters, 'mei', const Color(0xFF2196F3)),
-                                  _buildPremiumLetterRow(letters, 'uyirmei', const Color(0xFFFF9800)),
+                                  _buildPremiumLetterRow(
+                                    letters,
+                                    'uyir',
+                                    const Color(0xFF4CAF50),
+                                  ),
+                                  _buildPremiumLetterRow(
+                                    letters,
+                                    'mei',
+                                    const Color(0xFF2196F3),
+                                  ),
+                                  _buildPremiumLetterRow(
+                                    letters,
+                                    'uyirmei',
+                                    const Color(0xFFFF9800),
+                                  ),
                                 ],
                               ),
                             ],
@@ -782,7 +930,9 @@ class _TamilGridActivityState extends State<TamilGridActivity> with TickerProvid
                       _buildPremiumNavButton(
                         Icons.arrow_forward_rounded,
                         'அடுத்தது',
-                        _areAllAnswersSelected() ? () => _verifyAnswers() : null,
+                        _areAllAnswersSelected()
+                            ? () => _verifyAnswers()
+                            : null,
                         _areAllAnswersSelected(),
                         const Color(0xFF4CAF50),
                       ),
@@ -828,7 +978,11 @@ class _TamilGridActivityState extends State<TamilGridActivity> with TickerProvid
     );
   }
 
-  Widget _buildPremiumLetterRow(List<String> letters, String category, Color categoryColor) {
+  Widget _buildPremiumLetterRow(
+    List<String> letters,
+    String category,
+    Color categoryColor,
+  ) {
     return SizedBox(
       height: _getResponsiveSpacing(context, 50),
       child: Row(
@@ -840,7 +994,9 @@ class _TamilGridActivityState extends State<TamilGridActivity> with TickerProvid
           bool isSelected = userAnswers[key] == category;
 
           return Padding(
-            padding: EdgeInsets.symmetric(horizontal: _getResponsiveSpacing(context, 4)),
+            padding: EdgeInsets.symmetric(
+              horizontal: _getResponsiveSpacing(context, 4),
+            ),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 300),
               curve: Curves.easeInOut,
@@ -854,14 +1010,16 @@ class _TamilGridActivityState extends State<TamilGridActivity> with TickerProvid
                     : const LinearGradient(
                         colors: [Colors.white, Color(0xFFF8F9FA)],
                       ),
-                borderRadius: BorderRadius.circular(_getResponsiveSpacing(context, 12)),
+                borderRadius: BorderRadius.circular(
+                  _getResponsiveSpacing(context, 12),
+                ),
                 border: Border.all(
                   color: isSelected ? categoryColor : const Color(0xFFE0E0E0),
                   width: isSelected ? 3 : 2,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: isSelected 
+                    color: isSelected
                         ? categoryColor.withOpacity(0.3)
                         : Colors.black.withOpacity(0.05),
                     blurRadius: isSelected ? 12 : 6,
@@ -873,14 +1031,18 @@ class _TamilGridActivityState extends State<TamilGridActivity> with TickerProvid
                 color: Colors.transparent,
                 child: InkWell(
                   onTap: () => _selectCategory(letter, index, category),
-                  borderRadius: BorderRadius.circular(_getResponsiveSpacing(context, 12)),
+                  borderRadius: BorderRadius.circular(
+                    _getResponsiveSpacing(context, 12),
+                  ),
                   child: Center(
                     child: Text(
                       letter,
                       style: TextStyle(
                         fontSize: _getResponsiveFont(context, 20),
                         fontWeight: FontWeight.bold,
-                        color: isSelected ? Colors.white : const Color(0xFF1A1A1A),
+                        color: isSelected
+                            ? Colors.white
+                            : const Color(0xFF1A1A1A),
                       ),
                     ),
                   ),
@@ -916,8 +1078,12 @@ class _TamilGridActivityState extends State<TamilGridActivity> with TickerProvid
               decoration: BoxDecoration(
                 gradient: enabled
                     ? LinearGradient(colors: [color, color.withOpacity(0.8)])
-                    : LinearGradient(colors: [Colors.grey.shade300, Colors.grey.shade400]),
-                borderRadius: BorderRadius.circular(_getResponsiveSpacing(context, 16)),
+                    : LinearGradient(
+                        colors: [Colors.grey.shade300, Colors.grey.shade400],
+                      ),
+                borderRadius: BorderRadius.circular(
+                  _getResponsiveSpacing(context, 16),
+                ),
                 boxShadow: enabled
                     ? [
                         BoxShadow(
@@ -932,7 +1098,9 @@ class _TamilGridActivityState extends State<TamilGridActivity> with TickerProvid
                 color: Colors.transparent,
                 child: InkWell(
                   onTap: enabled ? onPressed : null,
-                  borderRadius: BorderRadius.circular(_getResponsiveSpacing(context, 16)),
+                  borderRadius: BorderRadius.circular(
+                    _getResponsiveSpacing(context, 16),
+                  ),
                   child: Icon(
                     icon,
                     color: enabled ? Colors.white : Colors.grey.shade600,

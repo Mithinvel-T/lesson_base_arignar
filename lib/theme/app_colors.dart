@@ -22,3 +22,4 @@ class AppColors {
   static const Color progressTrackGrey = Color(0xFFE0E0E0);
   static const Color softShadow = Color(0x1A000000);
 }
+
