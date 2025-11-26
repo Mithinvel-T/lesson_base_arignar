@@ -569,20 +569,22 @@ class _TamilGridActivityState extends State<TamilGridActivity> {
     final isMobile = screenWidth < 600;
     final isTablet = screenWidth >= 600 && screenWidth < 1024;
 
-    // Calculate sizes based on screen resolution
-    final wordFontSize =
-        screenWidth *
-        (isMobile
-            ? 0.06
-            : isTablet
-            ? 0.04
-            : 0.035);
-    final maxWidth = screenWidth > 900 ? 650.0 : screenWidth * 0.95;
-    final categoryWidth = isMobile
-        ? 85.0
-        : isTablet
-        ? 110.0
-        : 140.0; // Larger for iPad Pro
+    // Calculate base scale factor for smooth scaling - reduced for smaller screens
+    final baseScale = screenWidth / 400.0; // Base scale at 400px width
+    final scaleFactor = baseScale.clamp(
+      0.7,
+      2.0,
+    ); // Reduced max scaling to prevent overflow
+
+    // Calculate sizes based on screen resolution - smooth scaling with overflow prevention
+    final wordFontSize = (screenWidth * 0.048 * scaleFactor).clamp(16.0, 38.0);
+    final maxWidth = screenWidth > 1200
+        ? 800.0
+        : screenWidth > 900
+        ? 650.0
+        : screenWidth * 0.98;
+    // Category width scales smoothly with screen size - reduced for smaller screens
+    final categoryWidth = (screenWidth * 0.14 * scaleFactor).clamp(70.0, 150.0);
 
     return Scaffold(
       backgroundColor: const Color(0xFFFAF8EF), // Home page cream background
@@ -632,105 +634,169 @@ class _TamilGridActivityState extends State<TamilGridActivity> {
                             children: [
                               // Word container with speaker icon - Above image
                               Center(
-                                child: Container(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: isMobile
-                                        ? 20
-                                        : (isTablet
-                                              ? 24
-                                              : 28), // Increased horizontal padding
-                                    vertical: isMobile
-                                        ? 10
-                                        : (isTablet
-                                              ? 12
-                                              : 14), // Reduced vertical padding
+                                child: ConstrainedBox(
+                                  constraints: BoxConstraints(
+                                    maxWidth: constraints.maxWidth * 0.98,
                                   ),
-                                  margin: const EdgeInsets.only(bottom: 16),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(
-                                      16,
-                                    ), // Match image border radius
-                                    border: Border.all(
-                                      color: const Color(0xFFE0E0E0),
-                                      width: 1.5,
+                                  child: Container(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal:
+                                          (screenWidth * 0.045 * scaleFactor)
+                                              .clamp(14.0, 28.0),
+                                      vertical:
+                                          (screenWidth * 0.025 * scaleFactor)
+                                              .clamp(8.0, 16.0),
                                     ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.grey.withOpacity(0.1),
-                                        blurRadius: 6,
-                                        offset: const Offset(0, 2),
+                                    margin: EdgeInsets.only(
+                                      bottom:
+                                          (screenHeight * 0.02 * scaleFactor)
+                                              .clamp(12.0, 20.0),
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(
+                                        16,
+                                      ), // Match image border radius
+                                      border: Border.all(
+                                        color: const Color(0xFFE0E0E0),
+                                        width: 1.5,
                                       ),
-                                    ],
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    children: [
-                                      // Word text - Centered
-                                      Text(
-                                        word,
-                                        style: TextStyle(
-                                          fontSize: wordFontSize.clamp(
-                                            20.0,
-                                            40.0,
-                                          ), // Responsive based on screen width
-                                          fontWeight: FontWeight.bold,
-                                          color: const Color(0xFF1A1A1A),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.grey.withOpacity(0.1),
+                                          blurRadius: 6,
+                                          offset: const Offset(0, 2),
                                         ),
-                                      ),
-                                      const SizedBox(width: 12),
-                                      // Speaker icon - Right side
-                                      Material(
-                                        color: const Color(
-                                          0xFFFFF3E0,
-                                        ), // Light orange background
-                                        borderRadius: BorderRadius.circular(20),
-                                        child: InkWell(
-                                          onTap: () => _playAudio(word),
+                                      ],
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      children: [
+                                        // Word text - Flexible and adaptive for long words
+                                        Flexible(
+                                          child: LayoutBuilder(
+                                            builder: (context, wordConstraints) {
+                                              // Calculate optimal font size based on word length and available width
+                                              final wordLength = word.length;
+                                              final availableWordWidth =
+                                                  wordConstraints.maxWidth *
+                                                  0.85; // Leave space for icon
+
+                                              // Adjust font size based on word length - longer words get smaller base size
+                                              double adaptiveFontSize =
+                                                  wordFontSize;
+                                              if (wordLength > 8) {
+                                                // Reduce font size for very long words
+                                                adaptiveFontSize =
+                                                    wordFontSize *
+                                                    (8.0 / wordLength);
+                                              }
+
+                                              // Ensure it fits within constraints
+                                              final testStyle = TextStyle(
+                                                fontSize: adaptiveFontSize,
+                                                fontWeight: FontWeight.bold,
+                                              );
+                                              final testWidth =
+                                                  _calculateTextWidth(
+                                                    word,
+                                                    testStyle,
+                                                  );
+
+                                              if (testWidth >
+                                                      availableWordWidth &&
+                                                  availableWordWidth > 0) {
+                                                adaptiveFontSize =
+                                                    adaptiveFontSize *
+                                                    (availableWordWidth /
+                                                        testWidth);
+                                              }
+
+                                              return FittedBox(
+                                                fit: BoxFit.scaleDown,
+                                                child: Text(
+                                                  word,
+                                                  textAlign: TextAlign.center,
+                                                  style: TextStyle(
+                                                    fontSize: adaptiveFontSize
+                                                        .clamp(14.0, 36.0),
+                                                    fontWeight: FontWeight.bold,
+                                                    color: const Color(
+                                                      0xFF1A1A1A,
+                                                    ),
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                        ),
+                                        SizedBox(width: isMobile ? 8 : 12),
+                                        // Speaker icon - Right side
+                                        Material(
+                                          color: const Color(
+                                            0xFFFFF3E0,
+                                          ), // Light orange background
                                           borderRadius: BorderRadius.circular(
                                             20,
                                           ),
-                                          child: Container(
-                                            padding: EdgeInsets.all(
-                                              screenWidth * 0.02,
+                                          child: InkWell(
+                                            onTap: () => _playAudio(word),
+                                            borderRadius: BorderRadius.circular(
+                                              20,
                                             ),
-                                            child: Icon(
-                                              Icons.volume_up_rounded,
-                                              color: const Color(
-                                                0xFFFF8F00,
-                                              ), // Orange color
-                                              size:
-                                                  wordFontSize *
-                                                  0.7, // Scale with word font size
+                                            child: Container(
+                                              padding: EdgeInsets.all(
+                                                isMobile
+                                                    ? 6
+                                                    : (isTablet ? 8 : 10),
+                                              ),
+                                              child: Icon(
+                                                Icons.volume_up_rounded,
+                                                color: const Color(
+                                                  0xFFFF8F00,
+                                                ), // Orange color
+                                                size: (wordFontSize * 0.7)
+                                                    .clamp(16.0, 28.0),
+                                              ),
                                             ),
                                           ),
                                         ),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),
 
-                              // Image container - Rectangular, centered, perfect shape
+                              // Image container - Flexible and neat - scales smoothly
                               Center(
                                 child: Container(
-                                  width: isMobile
-                                      ? 200
-                                      : isTablet
-                                      ? 260
-                                      : 300, // Perfect sizes
-                                  height: isMobile
-                                      ? 160
-                                      : isTablet
-                                      ? 210
-                                      : 250, // Perfect sizes - maintains aspect ratio
-                                  margin: const EdgeInsets.only(bottom: 24),
+                                  constraints: BoxConstraints(
+                                    maxWidth: (screenWidth * 0.45 * scaleFactor)
+                                        .clamp(180.0, 400.0),
+                                    maxHeight:
+                                        (screenHeight * 0.28 * scaleFactor)
+                                            .clamp(140.0, 350.0),
+                                  ),
+                                  width: (screenWidth * 0.5 * scaleFactor)
+                                      .clamp(180.0, 350.0),
+                                  height: (screenWidth * 0.4 * scaleFactor)
+                                      .clamp(
+                                        140.0,
+                                        280.0,
+                                      ), // Maintains aspect ratio
+                                  margin: EdgeInsets.only(
+                                    bottom: (screenHeight * 0.025 * scaleFactor)
+                                        .clamp(16.0, 28.0),
+                                  ),
                                   decoration: BoxDecoration(
                                     color: Colors.white,
-                                    borderRadius: BorderRadius.circular(16),
+                                    borderRadius: BorderRadius.circular(
+                                      16,
+                                    ), // Match word container
                                     border: Border.all(
                                       color: const Color(0xFFE0E0E0),
                                       width: 1.5,
@@ -744,12 +810,14 @@ class _TamilGridActivityState extends State<TamilGridActivity> {
                                     ],
                                   ),
                                   child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(16),
+                                    borderRadius: BorderRadius.circular(
+                                      16,
+                                    ), // Match container border radius
                                     child: question.image.isNotEmpty
                                         ? Image.network(
                                             question.image,
                                             fit: BoxFit
-                                                .fill, // Perfect fit within container
+                                                .cover, // Flexible fit within container
                                             loadingBuilder:
                                                 (
                                                   context,
@@ -790,58 +858,91 @@ class _TamilGridActivityState extends State<TamilGridActivity> {
                                 ),
                               ),
 
-                              // Main grid - Centered
+                              // Main grid - Centered with constraints to prevent overflow
                               Center(
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    // Categories
-                                    SizedBox(
-                                      width: categoryWidth,
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.start,
-                                        children: [
-                                          _buildCategoryChip('உயிர்', 'uyir'),
-                                          SizedBox(
-                                            height: isMobile ? 6 : 8,
-                                          ), // Responsive spacing
-                                          _buildCategoryChip('மெய்', 'mei'),
-                                          SizedBox(
-                                            height: isMobile ? 6 : 8,
-                                          ), // Responsive spacing
-                                          _buildCategoryChip(
-                                            'உயிர்மெய்',
-                                            'uyirmei',
-                                          ),
-                                        ],
+                                child: ConstrainedBox(
+                                  constraints: BoxConstraints(
+                                    maxWidth: constraints.maxWidth * 0.98,
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      // Categories
+                                      SizedBox(
+                                        width: categoryWidth,
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.center,
+                                          children: [
+                                            _buildCategoryChip('உயிர்', 'uyir'),
+                                            SizedBox(
+                                              height: isMobile ? 6 : 8,
+                                            ), // Responsive spacing
+                                            _buildCategoryChip('மெய்', 'mei'),
+                                            SizedBox(
+                                              height: isMobile ? 6 : 8,
+                                            ), // Responsive spacing
+                                            _buildCategoryChip(
+                                              'உயிர்மெய்',
+                                              'uyirmei',
+                                            ),
+                                          ],
+                                        ),
                                       ),
-                                    ),
 
-                                    const SizedBox(width: 12),
+                                      SizedBox(width: isMobile ? 8 : 12),
 
-                                    // Letters grid
-                                    Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.start,
-                                      children: [
-                                        _buildLetterRow(letters, 'uyir'),
-                                        SizedBox(
-                                          height: isMobile ? 6 : 8,
-                                        ), // Responsive spacing
-                                        _buildLetterRow(letters, 'mei'),
-                                        SizedBox(
-                                          height: isMobile ? 6 : 8,
-                                        ), // Responsive spacing
-                                        _buildLetterRow(letters, 'uyirmei'),
-                                      ],
-                                    ),
-                                  ],
+                                      // Letters grid - Flexible to prevent overflow
+                                      Flexible(
+                                        child: LayoutBuilder(
+                                          builder: (context, letterConstraints) {
+                                            // Calculate actual available width for letters
+                                            final availableForLetters =
+                                                letterConstraints.maxWidth;
+
+                                            return Column(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.start,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                _buildLetterRow(
+                                                  letters,
+                                                  'uyir',
+                                                  availableForLetters,
+                                                ),
+                                                SizedBox(
+                                                  height: isMobile ? 6 : 8,
+                                                ), // Equal spacing matching category chips
+                                                _buildLetterRow(
+                                                  letters,
+                                                  'mei',
+                                                  availableForLetters,
+                                                ),
+                                                SizedBox(
+                                                  height: isMobile ? 6 : 8,
+                                                ), // Equal spacing matching category chips
+                                                _buildLetterRow(
+                                                  letters,
+                                                  'uyirmei',
+                                                  availableForLetters,
+                                                ),
+                                              ],
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
-                              // Add bottom padding to prevent color gap when scrolling
-                              SizedBox(height: isMobile ? 16 : 24),
+                              // Minimal bottom padding
+                              SizedBox(height: isMobile ? 8 : 12),
                             ],
                           ),
                         ),
@@ -904,8 +1005,6 @@ class _TamilGridActivityState extends State<TamilGridActivity> {
 
   Widget _buildCategoryChip(String label, String category) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final isMobile = screenWidth < 600;
-    final isTablet = screenWidth >= 600 && screenWidth < 1024;
 
     // Get color based on category
     Color getCategoryColor() {
@@ -923,27 +1022,27 @@ class _TamilGridActivityState extends State<TamilGridActivity> {
 
     final categoryColor = getCategoryColor();
 
-    // Responsive sizes - match word container height
-    final containerHeight = isMobile
-        ? 42.0
-        : isTablet
-        ? 52.0
-        : 60.0; // Match word container height
-    final fontSize = isMobile
-        ? 13.0
-        : isTablet
-        ? 16.0
-        : 18.0; // Larger for iPad Pro
-    final padding = isMobile
-        ? const EdgeInsets.symmetric(horizontal: 8, vertical: 6)
-        : isTablet
-        ? const EdgeInsets.symmetric(horizontal: 12, vertical: 10)
-        : const EdgeInsets.symmetric(
-            horizontal: 14,
-            vertical: 12,
-          ); // Larger for iPad Pro
-    final borderRadius = isMobile ? 8.0 : (isTablet ? 10.0 : 12.0);
-    final borderWidth = isMobile ? 1.0 : (isTablet ? 1.5 : 2.0);
+    // Calculate base scale factor for smooth scaling
+    final baseScale = screenWidth / 400.0; // Base scale at 400px width
+    final scaleFactor = baseScale.clamp(0.8, 2.5); // Limit scaling range
+
+    // Responsive sizes - smooth scaling based on screen size - match letter row height
+    final containerHeight = (screenWidth * 0.11 * scaleFactor).clamp(
+      35.0,
+      65.0,
+    );
+    final fontSize = (screenWidth * 0.035 * scaleFactor).clamp(12.0, 20.0);
+    final horizontalPadding = (screenWidth * 0.025 * scaleFactor).clamp(
+      6.0,
+      16.0,
+    );
+    final verticalPadding = (screenWidth * 0.02 * scaleFactor).clamp(5.0, 14.0);
+    final padding = EdgeInsets.symmetric(
+      horizontal: horizontalPadding,
+      vertical: verticalPadding,
+    );
+    final borderRadius = (screenWidth * 0.02 * scaleFactor).clamp(7.0, 14.0);
+    final borderWidth = (screenWidth * 0.003 * scaleFactor).clamp(0.8, 2.5);
 
     return Container(
       width: double.infinity,
@@ -985,22 +1084,24 @@ class _TamilGridActivityState extends State<TamilGridActivity> {
     return textPainter.size.width;
   }
 
-  Widget _buildLetterRow(List<String> letters, String category) {
+  Widget _buildLetterRow(
+    List<String> letters,
+    String category,
+    double maxAvailableWidth,
+  ) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final isMobile = screenWidth < 600;
-    final isTablet = screenWidth >= 600 && screenWidth < 1024;
 
-    // Responsive sizes - match word container height
-    final rowHeight = isMobile
-        ? 42.0
-        : isTablet
-        ? 52.0
-        : 60.0; // Match word container height
-    final fontSize = isMobile
-        ? 15.0
-        : isTablet
-        ? 20.0
-        : 24.0; // Larger for iPad Pro
+    // Calculate base scale factor for smooth scaling - reduce for smaller screens
+    final baseScale = screenWidth / 400.0; // Base scale at 400px width
+    final scaleFactor = baseScale.clamp(
+      0.7,
+      2.0,
+    ); // Reduced max scaling to prevent overflow
+
+    // Responsive sizes - smooth scaling based on screen size - reduced for smaller screens
+    // Match category chip height exactly for perfect alignment
+    final rowHeight = (screenWidth * 0.11 * scaleFactor).clamp(35.0, 65.0);
+    final fontSize = (screenWidth * 0.042 * scaleFactor).clamp(13.0, 26.0);
 
     return SizedBox(
       height: rowHeight,
@@ -1012,49 +1113,84 @@ class _TamilGridActivityState extends State<TamilGridActivity> {
             fontWeight: FontWeight.bold,
           );
 
-          // Find the maximum text width among all letters
-          double maxTextWidth = 0;
+          // Calculate individual widths for each letter (adaptive sizing) - reduced for smaller screens
+          final padding = (screenWidth * 0.035 * scaleFactor).clamp(10.0, 24.0);
+          final minWidth = (screenWidth * 0.09 * scaleFactor).clamp(32.0, 60.0);
+          final maxWidth = (screenWidth * 0.25 * scaleFactor).clamp(
+            75.0,
+            180.0,
+          );
+
+          // Calculate width for each letter based on its actual text width
+          List<double> letterWidths = [];
+          double totalTextWidth = 0;
+
           for (String letter in letters) {
             final textWidth = _calculateTextWidth(letter, textStyle);
-            if (textWidth > maxTextWidth) {
-              maxTextWidth = textWidth;
+            final calculatedWidth = (textWidth + padding).clamp(
+              minWidth,
+              maxWidth,
+            );
+            letterWidths.add(calculatedWidth);
+            totalTextWidth += calculatedWidth;
+          }
+
+          final spacing = (screenWidth * 0.012 * scaleFactor).clamp(2.0, 10.0);
+
+          // Calculate total width needed for all letters
+          final totalSpacing = spacing * (letters.length - 1);
+          final totalWidthNeeded = totalTextWidth + totalSpacing;
+
+          // Use the provided maxAvailableWidth or constraints.maxWidth, whichever is smaller
+          final availableWidth =
+              maxAvailableWidth > 0 && maxAvailableWidth < constraints.maxWidth
+              ? maxAvailableWidth
+              : (constraints.maxWidth > 0
+                    ? constraints.maxWidth
+                    : double.infinity);
+
+          // Adjust letter widths proportionally if content exceeds available space
+          List<double> adjustedWidths = List.from(letterWidths);
+          if (totalWidthNeeded > availableWidth &&
+              availableWidth != double.infinity) {
+            // Calculate scale factor to fit all letters - ensure we don't exceed available space
+            final availableForLetters = availableWidth - totalSpacing;
+            final scaleDownFactor = availableForLetters > 0
+                ? (availableForLetters / totalTextWidth).clamp(
+                    0.3,
+                    1.0,
+                  ) // Minimum 30% of original size
+                : 0.3;
+
+            // Recalculate total with scaled widths
+            double scaledTotal = 0;
+            for (int i = 0; i < adjustedWidths.length; i++) {
+              adjustedWidths[i] = (adjustedWidths[i] * scaleDownFactor).clamp(
+                minWidth * 0.7, // Allow smaller minimum for tight spaces
+                maxWidth,
+              );
+              scaledTotal += adjustedWidths[i];
+            }
+
+            // If still too wide, reduce minWidth further
+            if (scaledTotal + totalSpacing > availableWidth) {
+              final finalScale = (availableForLetters / scaledTotal).clamp(
+                0.5,
+                1.0,
+              );
+              for (int i = 0; i < adjustedWidths.length; i++) {
+                adjustedWidths[i] = (adjustedWidths[i] * finalScale).clamp(
+                  minWidth * 0.5, // Further reduced minimum
+                  maxWidth,
+                );
+              }
             }
           }
 
-          // Responsive padding and box width - larger for tablets and iPad Pro
-          final padding = isMobile
-              ? 14.0
-              : isTablet
-              ? 20.0
-              : 24.0; // Larger for iPad Pro
-          final calculatedBoxWidth = maxTextWidth + padding;
-
-          // Clamp to reasonable size: larger for tablets and iPad Pro
-          final minWidth = isMobile
-              ? 45.0
-              : isTablet
-              ? 60.0
-              : 70.0; // Larger for iPad Pro
-          final maxWidth = isMobile
-              ? 90.0
-              : isTablet
-              ? 130.0
-              : 150.0; // Larger for iPad Pro
-          final boxWidth = calculatedBoxWidth.clamp(minWidth, maxWidth);
-
-          final spacing = isMobile
-              ? 4.0
-              : isTablet
-              ? 8.0
-              : 10.0; // More spacing for larger screens
-
-          // Calculate total width needed for all letters
-          final totalWidthNeeded =
-              (boxWidth * letters.length) + (spacing * (letters.length - 1));
-
-          // Use SingleChildScrollView if content exceeds available width
+          // Build row content with adjusted widths (no scrolling) - centered alignment
           Widget rowContent = Row(
-            mainAxisAlignment: MainAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
             children: letters.asMap().entries.map((entry) {
               int index = entry.key;
               String letter = entry.value;
@@ -1087,12 +1223,15 @@ class _TamilGridActivityState extends State<TamilGridActivity> {
               // But allow unselection even if disabled
               final isDisabled = _hasWrongAnswer && !isCorrectCategory;
 
+              // Get adaptive width for this specific letter
+              final letterWidth = adjustedWidths[index];
+
               return Padding(
                 padding: EdgeInsets.only(
                   right: index < letters.length - 1 ? spacing : 0,
                 ),
                 child: SizedBox(
-                  width: boxWidth, // Uniform width based on largest letter
+                  width: letterWidth, // Adaptive width based on letter length
                   child: InkWell(
                     onTap: () {
                       setState(() {
@@ -1109,13 +1248,9 @@ class _TamilGridActivityState extends State<TamilGridActivity> {
                     },
                     borderRadius: BorderRadius.circular(8),
                     child: Container(
-                      width:
-                          boxWidth, // Ensure uniform width for all containers
-                      height: isMobile
-                          ? 38.0
-                          : isTablet
-                          ? 48.0
-                          : 56.0, // Match word container height
+                      width: letterWidth, // Use adaptive width for this letter
+                      height:
+                          rowHeight, // Match row height exactly for perfect alignment
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
                         color: isSelected
@@ -1124,7 +1259,7 @@ class _TamilGridActivityState extends State<TamilGridActivity> {
                             ? Colors.grey.withOpacity(0.2) // Disabled color
                             : Colors.white, // Clean white when not selected
                         borderRadius: BorderRadius.circular(
-                          isMobile ? 6.0 : 8.0,
+                          (screenWidth * 0.018 * scaleFactor).clamp(5.0, 10.0),
                         ),
                         border: Border.all(
                           color: isSelected
@@ -1135,8 +1270,14 @@ class _TamilGridActivityState extends State<TamilGridActivity> {
                                   0xFFE0E0E0,
                                 ), // Simple grey border when not selected
                           width: isSelected
-                              ? (isMobile ? 1.5 : 2.0)
-                              : (isMobile ? 1.0 : 1.2),
+                              ? (screenWidth * 0.004 * scaleFactor).clamp(
+                                  1.2,
+                                  2.5,
+                                )
+                              : (screenWidth * 0.0025 * scaleFactor).clamp(
+                                  0.8,
+                                  1.5,
+                                ),
                         ),
                         boxShadow: [
                           BoxShadow(
@@ -1147,29 +1288,55 @@ class _TamilGridActivityState extends State<TamilGridActivity> {
                                 : Colors.grey.withOpacity(
                                     0.06,
                                   ), // Light shadow when not selected
-                            blurRadius: isSelected ? (isMobile ? 4 : 6) : 2,
+                            blurRadius: isSelected
+                                ? (screenWidth * 0.012 * scaleFactor).clamp(
+                                    3.0,
+                                    7.0,
+                                  )
+                                : (screenWidth * 0.005 * scaleFactor).clamp(
+                                    1.5,
+                                    3.0,
+                                  ),
                             offset: Offset(
                               0,
-                              isSelected ? (isMobile ? 2.0 : 3.0) : 1.0,
+                              isSelected
+                                  ? (screenWidth * 0.006 * scaleFactor).clamp(
+                                      1.5,
+                                      3.5,
+                                    )
+                                  : (screenWidth * 0.0025 * scaleFactor).clamp(
+                                      0.8,
+                                      1.5,
+                                    ),
                             ),
                           ),
                         ],
                       ),
-                      child: Text(
-                        letter,
-                        style: TextStyle(
-                          fontSize: fontSize,
-                          fontWeight: FontWeight.bold,
-                          color: isSelected
-                              ? Colors
-                                    .white // White text when selected
-                              : isDisabled
-                              ? Colors.grey.withOpacity(0.5) // Disabled text
-                              : const Color(
-                                  0xFF333333,
-                                ), // Dark text when not selected
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                          child: Text(
+                            letter,
+                            style: TextStyle(
+                              fontSize: fontSize,
+                              fontWeight: FontWeight.bold,
+                              color: isSelected
+                                  ? Colors
+                                        .white // White text when selected
+                                  : isDisabled
+                                  ? Colors.grey.withOpacity(
+                                      0.5,
+                                    ) // Disabled text
+                                  : const Color(
+                                      0xFF333333,
+                                    ), // Dark text when not selected
+                            ),
+                            textAlign: TextAlign.center,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                        textAlign: TextAlign.center,
                       ),
                     ),
                   ),
@@ -1178,15 +1345,8 @@ class _TamilGridActivityState extends State<TamilGridActivity> {
             }).toList(),
           );
 
-          // Wrap in scrollable if content is wider than available space
-          if (totalWidthNeeded > constraints.maxWidth) {
-            return SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: rowContent,
-            );
-          } else {
-            return rowContent;
-          }
+          // Return row content without scrolling - sizes are adjusted to fit
+          return rowContent;
         },
       ),
     );
