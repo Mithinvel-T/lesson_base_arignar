@@ -15,6 +15,8 @@ class TamilGridActivity extends StatefulWidget {
 
 class _TamilGridActivityState extends State<TamilGridActivity> {
   final List<LetterQuestion> questions = LetterQuestionsData.questions;
+  final ScrollController _scrollController = ScrollController();
+  bool _hasScrollableContent = false;
 
   int currentQuestionIndex = 0;
   Map<String, String?> userAnswers = {};
@@ -25,6 +27,25 @@ class _TamilGridActivityState extends State<TamilGridActivity> {
   void initState() {
     super.initState();
     _initializeQuestion();
+    _scrollController.addListener(_checkScrollable);
+  }
+
+  void _checkScrollable() {
+    if (_scrollController.hasClients) {
+      final isScrollable = _scrollController.position.maxScrollExtent > 0;
+      if (isScrollable != _hasScrollableContent) {
+        setState(() {
+          _hasScrollableContent = isScrollable;
+        });
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_checkScrollable);
+    _scrollController.dispose();
+    super.dispose();
   }
 
   void _initializeQuestion() {
@@ -97,6 +118,14 @@ class _TamilGridActivityState extends State<TamilGridActivity> {
     }
 
     debugPrint('Final Result: ${correct ? "CORRECT" : "WRONG"}');
+
+    // If last question and answer is correct, show completion dialog directly
+    bool isLastQuestion = currentQuestionIndex == questions.length - 1;
+    if (isLastQuestion && correct) {
+      _showCompletionDialog();
+      return;
+    }
+
     if (!correct) {
       _hasWrongAnswer = true; // Mark that wrong answer was shown
     }
@@ -455,27 +484,68 @@ class _TamilGridActivityState extends State<TamilGridActivity> {
   }
 
   void _showCompletionDialog() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final screenSize = screenWidth < screenHeight ? screenWidth : screenHeight;
+
+    // Calculate responsive font sizes based on screen size
+    final titleFontSize = (screenSize * 0.06).clamp(24.0, 32.0);
+    final contentFontSize = (screenSize * 0.04).clamp(16.0, 20.0);
+    final buttonFontSize = (screenSize * 0.035).clamp(14.0, 18.0);
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Colors.white,
-        title: const Text('Congratulations! 🎉', textAlign: TextAlign.center),
-        content: const Text(
-          'All questions completed!',
-          textAlign: TextAlign.center,
+        contentPadding: EdgeInsets.symmetric(
+          horizontal: screenWidth * 0.05,
+          vertical: screenHeight * 0.02,
         ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              setState(() {
-                currentQuestionIndex = 0;
-                _initializeQuestion();
-              });
-            },
-            child: const Text('Start Again'),
-          ),
-        ],
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Congratulations! 🎉',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: titleFontSize,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: screenHeight * 0.015),
+            Text(
+              'All questions completed!',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: contentFontSize),
+            ),
+            SizedBox(height: screenHeight * 0.02),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+                setState(() {
+                  currentQuestionIndex = 0;
+                  _initializeQuestion();
+                });
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+                foregroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(
+                  horizontal: screenWidth * 0.06,
+                  vertical: screenHeight * 0.015,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: Text(
+                'Start Again',
+                style: TextStyle(fontSize: buttonFontSize),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -493,10 +563,26 @@ class _TamilGridActivityState extends State<TamilGridActivity> {
     final letters = question.letters;
     final progress = (currentQuestionIndex + 1) / questions.length;
     final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
 
-    // Flexible responsive values
+    // Flexible responsive values for different screen sizes
+    final isMobile = screenWidth < 600;
+    final isTablet = screenWidth >= 600 && screenWidth < 1024;
+
+    // Calculate sizes based on screen resolution
+    final wordFontSize =
+        screenWidth *
+        (isMobile
+            ? 0.06
+            : isTablet
+            ? 0.04
+            : 0.035);
     final maxWidth = screenWidth > 900 ? 650.0 : screenWidth * 0.95;
-    final categoryWidth = maxWidth < 500 ? 100.0 : 120.0;
+    final categoryWidth = isMobile
+        ? 85.0
+        : isTablet
+        ? 110.0
+        : 140.0; // Larger for iPad Pro
 
     return Scaffold(
       backgroundColor: const Color(0xFFFAF8EF), // Home page cream background
@@ -512,177 +598,256 @@ class _TamilGridActivityState extends State<TamilGridActivity> {
 
           // Main content area
           Expanded(
-            child: Center(
+            child: Align(
+              alignment: Alignment.topCenter,
               child: Container(
                 width: maxWidth,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 16,
+                padding: EdgeInsets.only(
+                  left: isMobile ? 12 : 24,
+                  right: isMobile ? 12 : 24,
+                  top: isMobile ? 12 : 20,
+                  bottom: isMobile ? 12 : 16,
                 ),
-                child: Column(
-                  children: [
-                    // Word container with speaker icon - Above image
-                    Center(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 14,
-                        ),
-                        margin: const EdgeInsets.only(bottom: 16),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: const Color(0xFFE0E0E0),
-                            width: 1.5,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.grey.withOpacity(0.1),
-                              blurRadius: 6,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            // Word text - Centered
-                            Text(
-                              word,
-                              style: const TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF1A1A1A),
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            // Speaker icon - Right side
-                            Material(
-                              color: const Color(
-                                0xFFFFF3E0,
-                              ), // Light orange background
-                              borderRadius: BorderRadius.circular(20),
-                              child: InkWell(
-                                onTap: () => _playAudio(word),
-                                borderRadius: BorderRadius.circular(20),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    // Check if content is scrollable after build
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      _checkScrollable();
+                    });
+
+                    return Scrollbar(
+                      controller: _scrollController,
+                      thumbVisibility:
+                          _hasScrollableContent, // Show only when scrollable
+                      child: SingleChildScrollView(
+                        controller: _scrollController,
+                        physics:
+                            const AlwaysScrollableScrollPhysics(), // Prevent overflow
+                        child: Container(
+                          color: const Color(
+                            0xFFFAF8EF,
+                          ), // Match scaffold background
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              // Word container with speaker icon - Above image
+                              Center(
                                 child: Container(
-                                  padding: const EdgeInsets.all(8),
-                                  child: const Icon(
-                                    Icons.volume_up_rounded,
-                                    color: Color(0xFFFF8F00), // Orange color
-                                    size: 22,
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: isMobile
+                                        ? 20
+                                        : (isTablet
+                                              ? 24
+                                              : 28), // Increased horizontal padding
+                                    vertical: isMobile
+                                        ? 10
+                                        : (isTablet
+                                              ? 12
+                                              : 14), // Reduced vertical padding
                                   ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    // Image container - Rectangular, centered, perfect shape
-                    Center(
-                      child: Container(
-                        width: 220,
-                        height: 180,
-                        margin: const EdgeInsets.only(bottom: 24),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: const Color(0xFFE0E0E0),
-                            width: 1.5,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.grey.withOpacity(0.1),
-                              blurRadius: 8,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(16),
-                          child: question.image.isNotEmpty
-                              ? Image.network(
-                                  question.image,
-                                  fit: BoxFit.cover,
-                                  loadingBuilder:
-                                      (context, child, loadingProgress) {
-                                        if (loadingProgress == null)
-                                          return child;
-                                        return const Center(
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                            valueColor:
-                                                AlwaysStoppedAnimation<Color>(
-                                                  Color(0xFFFFA726),
-                                                ),
-                                          ),
-                                        );
-                                      },
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return const Center(
-                                      child: Icon(
-                                        Icons.image_outlined,
-                                        size: 64,
-                                        color: Color(0xFFBDBDBD),
+                                  margin: const EdgeInsets.only(bottom: 16),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(
+                                      16,
+                                    ), // Match image border radius
+                                    border: Border.all(
+                                      color: const Color(0xFFE0E0E0),
+                                      width: 1.5,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.grey.withOpacity(0.1),
+                                        blurRadius: 6,
+                                        offset: const Offset(0, 2),
                                       ),
-                                    );
-                                  },
-                                )
-                              : const Center(
-                                  child: Icon(
-                                    Icons.image_outlined,
-                                    size: 64,
-                                    color: Color(0xFFBDBDBD),
+                                    ],
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      // Word text - Centered
+                                      Text(
+                                        word,
+                                        style: TextStyle(
+                                          fontSize: wordFontSize.clamp(
+                                            20.0,
+                                            40.0,
+                                          ), // Responsive based on screen width
+                                          fontWeight: FontWeight.bold,
+                                          color: const Color(0xFF1A1A1A),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      // Speaker icon - Right side
+                                      Material(
+                                        color: const Color(
+                                          0xFFFFF3E0,
+                                        ), // Light orange background
+                                        borderRadius: BorderRadius.circular(20),
+                                        child: InkWell(
+                                          onTap: () => _playAudio(word),
+                                          borderRadius: BorderRadius.circular(
+                                            20,
+                                          ),
+                                          child: Container(
+                                            padding: EdgeInsets.all(
+                                              screenWidth * 0.02,
+                                            ),
+                                            child: Icon(
+                                              Icons.volume_up_rounded,
+                                              color: const Color(
+                                                0xFFFF8F00,
+                                              ), // Orange color
+                                              size:
+                                                  wordFontSize *
+                                                  0.7, // Scale with word font size
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                        ),
-                      ),
-                    ),
-
-                    // Main grid - Centered
-                    Expanded(
-                      child: Center(
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Categories
-                            SizedBox(
-                              width: categoryWidth,
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                children: [
-                                  _buildCategoryChip('உயிர்'),
-                                  const SizedBox(height: 8), // Reduced spacing
-                                  _buildCategoryChip('மெய்'),
-                                  const SizedBox(height: 8), // Reduced spacing
-                                  _buildCategoryChip('உயிர்மெய்'),
-                                ],
                               ),
-                            ),
 
-                            const SizedBox(width: 12),
+                              // Image container - Rectangular, centered, perfect shape
+                              Center(
+                                child: Container(
+                                  width: isMobile
+                                      ? 200
+                                      : isTablet
+                                      ? 260
+                                      : 300, // Perfect sizes
+                                  height: isMobile
+                                      ? 160
+                                      : isTablet
+                                      ? 210
+                                      : 250, // Perfect sizes - maintains aspect ratio
+                                  margin: const EdgeInsets.only(bottom: 24),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(
+                                      color: const Color(0xFFE0E0E0),
+                                      width: 1.5,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.grey.withOpacity(0.1),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 4),
+                                      ),
+                                    ],
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(16),
+                                    child: question.image.isNotEmpty
+                                        ? Image.network(
+                                            question.image,
+                                            fit: BoxFit
+                                                .fill, // Perfect fit within container
+                                            loadingBuilder:
+                                                (
+                                                  context,
+                                                  child,
+                                                  loadingProgress,
+                                                ) {
+                                                  if (loadingProgress == null)
+                                                    return child;
+                                                  return const Center(
+                                                    child: CircularProgressIndicator(
+                                                      strokeWidth: 2,
+                                                      valueColor:
+                                                          AlwaysStoppedAnimation<
+                                                            Color
+                                                          >(Color(0xFFFFA726)),
+                                                    ),
+                                                  );
+                                                },
+                                            errorBuilder:
+                                                (context, error, stackTrace) {
+                                                  return const Center(
+                                                    child: Icon(
+                                                      Icons.image_outlined,
+                                                      size: 64,
+                                                      color: Color(0xFFBDBDBD),
+                                                    ),
+                                                  );
+                                                },
+                                          )
+                                        : const Center(
+                                            child: Icon(
+                                              Icons.image_outlined,
+                                              size: 64,
+                                              color: Color(0xFFBDBDBD),
+                                            ),
+                                          ),
+                                  ),
+                                ),
+                              ),
 
-                            // Letters grid
-                            Column(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                _buildLetterRow(letters, 'uyir'),
-                                const SizedBox(height: 8), // Reduced spacing
-                                _buildLetterRow(letters, 'mei'),
-                                const SizedBox(height: 8), // Reduced spacing
-                                _buildLetterRow(letters, 'uyirmei'),
-                              ],
-                            ),
-                          ],
+                              // Main grid - Centered
+                              Center(
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    // Categories
+                                    SizedBox(
+                                      width: categoryWidth,
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.start,
+                                        children: [
+                                          _buildCategoryChip('உயிர்', 'uyir'),
+                                          SizedBox(
+                                            height: isMobile ? 6 : 8,
+                                          ), // Responsive spacing
+                                          _buildCategoryChip('மெய்', 'mei'),
+                                          SizedBox(
+                                            height: isMobile ? 6 : 8,
+                                          ), // Responsive spacing
+                                          _buildCategoryChip(
+                                            'உயிர்மெய்',
+                                            'uyirmei',
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+
+                                    const SizedBox(width: 12),
+
+                                    // Letters grid
+                                    Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      children: [
+                                        _buildLetterRow(letters, 'uyir'),
+                                        SizedBox(
+                                          height: isMobile ? 6 : 8,
+                                        ), // Responsive spacing
+                                        _buildLetterRow(letters, 'mei'),
+                                        SizedBox(
+                                          height: isMobile ? 6 : 8,
+                                        ), // Responsive spacing
+                                        _buildLetterRow(letters, 'uyirmei'),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              // Add bottom padding to prevent color gap when scrolling
+                              SizedBox(height: isMobile ? 16 : 24),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    );
+                  },
                 ),
               ),
             ),
@@ -737,18 +902,60 @@ class _TamilGridActivityState extends State<TamilGridActivity> {
     );
   }
 
-  Widget _buildCategoryChip(String label) {
+  Widget _buildCategoryChip(String label, String category) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 600;
+    final isTablet = screenWidth >= 600 && screenWidth < 1024;
+
+    // Get color based on category
+    Color getCategoryColor() {
+      switch (category) {
+        case 'uyir':
+          return const Color(0xFF64B5F6); // Soft light blue
+        case 'mei':
+          return const Color(0xFFFFB74D); // Soft light orange
+        case 'uyirmei':
+          return const Color(0xFF81C784); // Soft light green
+        default:
+          return const Color(0xFFE0E0E0); // Grey default
+      }
+    }
+
+    final categoryColor = getCategoryColor();
+
+    // Responsive sizes - match word container height
+    final containerHeight = isMobile
+        ? 42.0
+        : isTablet
+        ? 52.0
+        : 60.0; // Match word container height
+    final fontSize = isMobile
+        ? 13.0
+        : isTablet
+        ? 16.0
+        : 18.0; // Larger for iPad Pro
+    final padding = isMobile
+        ? const EdgeInsets.symmetric(horizontal: 8, vertical: 6)
+        : isTablet
+        ? const EdgeInsets.symmetric(horizontal: 12, vertical: 10)
+        : const EdgeInsets.symmetric(
+            horizontal: 14,
+            vertical: 12,
+          ); // Larger for iPad Pro
+    final borderRadius = isMobile ? 8.0 : (isTablet ? 10.0 : 12.0);
+    final borderWidth = isMobile ? 1.0 : (isTablet ? 1.5 : 2.0);
+
     return Container(
       width: double.infinity,
-      height: 38,
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      height: containerHeight,
+      padding: padding,
       decoration: BoxDecoration(
-        color: const Color(0xFFF0E6D2),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFD4A574)),
+        color: categoryColor.withOpacity(0.15),
+        borderRadius: BorderRadius.circular(borderRadius),
+        border: Border.all(color: categoryColor, width: borderWidth),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.06),
+            color: categoryColor.withOpacity(0.1),
             blurRadius: 3,
             offset: const Offset(0, 1),
           ),
@@ -758,10 +965,10 @@ class _TamilGridActivityState extends State<TamilGridActivity> {
         child: Text(
           label,
           textAlign: TextAlign.center,
-          style: const TextStyle(
-            fontSize: 14,
+          style: TextStyle(
+            fontSize: fontSize,
             fontWeight: FontWeight.w600,
-            color: Color(0xFF5D4037),
+            color: categoryColor,
           ),
         ),
       ),
@@ -779,13 +986,29 @@ class _TamilGridActivityState extends State<TamilGridActivity> {
   }
 
   Widget _buildLetterRow(List<String> letters, String category) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 600;
+    final isTablet = screenWidth >= 600 && screenWidth < 1024;
+
+    // Responsive sizes - match word container height
+    final rowHeight = isMobile
+        ? 42.0
+        : isTablet
+        ? 52.0
+        : 60.0; // Match word container height
+    final fontSize = isMobile
+        ? 15.0
+        : isTablet
+        ? 20.0
+        : 24.0; // Larger for iPad Pro
+
     return SizedBox(
-      height: 38,
+      height: rowHeight,
       child: LayoutBuilder(
         builder: (context, constraints) {
           // Calculate width needed for each letter's text
-          final textStyle = const TextStyle(
-            fontSize: 16,
+          final textStyle = TextStyle(
+            fontSize: fontSize,
             fontWeight: FontWeight.bold,
           );
 
@@ -798,15 +1021,32 @@ class _TamilGridActivityState extends State<TamilGridActivity> {
             }
           }
 
-          // Add padding (8px on each side = 16px total)
-          final padding = 16.0;
+          // Responsive padding and box width - larger for tablets and iPad Pro
+          final padding = isMobile
+              ? 14.0
+              : isTablet
+              ? 20.0
+              : 24.0; // Larger for iPad Pro
           final calculatedBoxWidth = maxTextWidth + padding;
 
-          // Clamp to reasonable size: minimum 50px, maximum 100px (increased for more letters)
-          // This ensures containers are compact but uniform
-          final boxWidth = calculatedBoxWidth.clamp(50.0, 100.0);
+          // Clamp to reasonable size: larger for tablets and iPad Pro
+          final minWidth = isMobile
+              ? 45.0
+              : isTablet
+              ? 60.0
+              : 70.0; // Larger for iPad Pro
+          final maxWidth = isMobile
+              ? 90.0
+              : isTablet
+              ? 130.0
+              : 150.0; // Larger for iPad Pro
+          final boxWidth = calculatedBoxWidth.clamp(minWidth, maxWidth);
 
-          final spacing = 6.0; // Reduced spacing between boxes
+          final spacing = isMobile
+              ? 4.0
+              : isTablet
+              ? 8.0
+              : 10.0; // More spacing for larger screens
 
           // Calculate total width needed for all letters
           final totalWidthNeeded =
@@ -871,7 +1111,11 @@ class _TamilGridActivityState extends State<TamilGridActivity> {
                     child: Container(
                       width:
                           boxWidth, // Ensure uniform width for all containers
-                      height: 34, // Fixed height
+                      height: isMobile
+                          ? 38.0
+                          : isTablet
+                          ? 48.0
+                          : 56.0, // Match word container height
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
                         color: isSelected
@@ -879,7 +1123,9 @@ class _TamilGridActivityState extends State<TamilGridActivity> {
                             : isDisabled
                             ? Colors.grey.withOpacity(0.2) // Disabled color
                             : Colors.white, // Clean white when not selected
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(
+                          isMobile ? 6.0 : 8.0,
+                        ),
                         border: Border.all(
                           color: isSelected
                               ? categoryColor // Category border when selected
@@ -888,7 +1134,9 @@ class _TamilGridActivityState extends State<TamilGridActivity> {
                               : const Color(
                                   0xFFE0E0E0,
                                 ), // Simple grey border when not selected
-                          width: isSelected ? 2.0 : 1.2,
+                          width: isSelected
+                              ? (isMobile ? 1.5 : 2.0)
+                              : (isMobile ? 1.0 : 1.2),
                         ),
                         boxShadow: [
                           BoxShadow(
@@ -899,15 +1147,18 @@ class _TamilGridActivityState extends State<TamilGridActivity> {
                                 : Colors.grey.withOpacity(
                                     0.06,
                                   ), // Light shadow when not selected
-                            blurRadius: isSelected ? 6 : 2,
-                            offset: Offset(0, isSelected ? 3.0 : 1.0),
+                            blurRadius: isSelected ? (isMobile ? 4 : 6) : 2,
+                            offset: Offset(
+                              0,
+                              isSelected ? (isMobile ? 2.0 : 3.0) : 1.0,
+                            ),
                           ),
                         ],
                       ),
                       child: Text(
                         letter,
                         style: TextStyle(
-                          fontSize: 16,
+                          fontSize: fontSize,
                           fontWeight: FontWeight.bold,
                           color: isSelected
                               ? Colors
