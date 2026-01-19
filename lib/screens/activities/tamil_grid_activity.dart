@@ -20,8 +20,10 @@ class _TamilGridActivityState extends State<TamilGridActivity> {
 
   int currentQuestionIndex = 0;
   Map<String, String?> userAnswers = {}; // Current question answers
-  Map<int, Map<String, String?>> savedAnswers = {}; // Save answers per question index
-  Map<int, bool> savedWrongAnswerFlags = {}; // Save wrong answer flag per question
+  Map<int, Map<String, String?>> savedAnswers =
+      {}; // Save answers per question index
+  Map<int, bool> savedWrongAnswerFlags =
+      {}; // Save wrong answer flag per question
   bool _dialogButtonClicked = false; // Flag to track dialog button click
   bool _hasWrongAnswer = false; // Track if wrong answer was shown
 
@@ -51,12 +53,37 @@ class _TamilGridActivityState extends State<TamilGridActivity> {
   }
 
   void _initializeQuestion() {
-    userAnswers.clear();
-    _hasWrongAnswer = false; // Reset wrong answer flag
-    final letters = questions[currentQuestionIndex].letters;
-    for (int i = 0; i < letters.length; i++) {
-      userAnswers['${letters[i]}_$i'] = null;
+    // Check if we have saved answers for this question
+    final savedAnswerMap = savedAnswers[currentQuestionIndex];
+    if (savedAnswerMap != null && savedAnswerMap.isNotEmpty) {
+      // Restore saved answers
+      userAnswers = Map<String, String?>.from(savedAnswerMap);
+      _hasWrongAnswer = savedWrongAnswerFlags[currentQuestionIndex] ?? false;
+    } else {
+      // Initialize new question
+      userAnswers.clear();
+      _hasWrongAnswer = false; // Reset wrong answer flag
+      final letters = questions[currentQuestionIndex].letters;
+      for (int i = 0; i < letters.length; i++) {
+        userAnswers['${letters[i]}_$i'] = null;
+      }
     }
+  }
+
+  // Check if a category exists in the current question
+  // Returns true if at least one letter in the question belongs to this category
+  bool _isCategoryPresentInQuestion(String category) {
+    final question = questions[currentQuestionIndex];
+    final correctAnswers = question.correctAnswers;
+
+    // Check if any letter in the question belongs to this category
+    for (String letter in question.letters) {
+      if (correctAnswers[letter] == category) {
+        return true; // Found at least one letter belonging to this category
+      }
+    }
+
+    return false; // No letters belong to this category
   }
 
   void _selectCategory(String letter, int letterIndex, String category) {
@@ -73,6 +100,11 @@ class _TamilGridActivityState extends State<TamilGridActivity> {
 
       // Set the category
       userAnswers['${letter}_$letterIndex'] = category;
+
+      // Save answers for current question - ensure we create a new map
+      savedAnswers[currentQuestionIndex] = Map<String, String?>.from(
+        userAnswers,
+      );
     });
   }
 
@@ -130,7 +162,11 @@ class _TamilGridActivityState extends State<TamilGridActivity> {
 
     if (!correct) {
       _hasWrongAnswer = true; // Mark that wrong answer was shown
+      savedWrongAnswerFlags[currentQuestionIndex] =
+          true; // Save wrong answer flag
     }
+    // Save current answers before showing dialog - ensure we create a new map
+    savedAnswers[currentQuestionIndex] = Map<String, String?>.from(userAnswers);
     _showResultDialog(correct, wrongAnswers);
   }
 
@@ -471,6 +507,10 @@ class _TamilGridActivityState extends State<TamilGridActivity> {
   }
 
   void _nextQuestion() {
+    // Save current answers before moving to next question - ensure we create a new map
+    savedAnswers[currentQuestionIndex] = Map<String, String?>.from(userAnswers);
+    savedWrongAnswerFlags[currentQuestionIndex] = _hasWrongAnswer;
+
     if (currentQuestionIndex < questions.length - 1) {
       setState(() {
         currentQuestionIndex++;
@@ -877,17 +917,32 @@ class _TamilGridActivityState extends State<TamilGridActivity> {
                                           crossAxisAlignment:
                                               CrossAxisAlignment.center,
                                           children: [
-                                            _buildCategoryChip('உயிர்', 'uyir'),
+                                            _buildCategoryChip(
+                                              'உயிர்',
+                                              'uyir',
+                                              _isCategoryPresentInQuestion(
+                                                'uyir',
+                                              ),
+                                            ),
                                             SizedBox(
                                               height: isMobile ? 6 : 8,
                                             ), // Responsive spacing
-                                            _buildCategoryChip('மெய்', 'mei'),
+                                            _buildCategoryChip(
+                                              'மெய்',
+                                              'mei',
+                                              _isCategoryPresentInQuestion(
+                                                'mei',
+                                              ),
+                                            ),
                                             SizedBox(
                                               height: isMobile ? 6 : 8,
                                             ), // Responsive spacing
                                             _buildCategoryChip(
                                               'உயிர்மெய்',
                                               'uyirmei',
+                                              _isCategoryPresentInQuestion(
+                                                'uyirmei',
+                                              ),
                                             ),
                                           ],
                                         ),
@@ -913,6 +968,9 @@ class _TamilGridActivityState extends State<TamilGridActivity> {
                                                   letters,
                                                   'uyir',
                                                   availableForLetters,
+                                                  _isCategoryPresentInQuestion(
+                                                    'uyir',
+                                                  ),
                                                 ),
                                                 SizedBox(
                                                   height: isMobile ? 6 : 8,
@@ -921,6 +979,9 @@ class _TamilGridActivityState extends State<TamilGridActivity> {
                                                   letters,
                                                   'mei',
                                                   availableForLetters,
+                                                  _isCategoryPresentInQuestion(
+                                                    'mei',
+                                                  ),
                                                 ),
                                                 SizedBox(
                                                   height: isMobile ? 6 : 8,
@@ -929,6 +990,9 @@ class _TamilGridActivityState extends State<TamilGridActivity> {
                                                   letters,
                                                   'uyirmei',
                                                   availableForLetters,
+                                                  _isCategoryPresentInQuestion(
+                                                    'uyirmei',
+                                                  ),
                                                 ),
                                               ],
                                             );
@@ -979,10 +1043,18 @@ class _TamilGridActivityState extends State<TamilGridActivity> {
                   _buildNavButton(
                     Icons.arrow_back_rounded,
                     currentQuestionIndex > 0
-                        ? () => setState(() {
-                            currentQuestionIndex--;
-                            _initializeQuestion();
-                          })
+                        ? () {
+                            // Save current answers before going back - ensure we create a new map
+                            savedAnswers[currentQuestionIndex] =
+                                Map<String, String?>.from(userAnswers);
+                            savedWrongAnswerFlags[currentQuestionIndex] =
+                                _hasWrongAnswer;
+
+                            setState(() {
+                              currentQuestionIndex--;
+                              _initializeQuestion();
+                            });
+                          }
                         : null,
                     currentQuestionIndex > 0,
                   ),
@@ -1001,7 +1073,7 @@ class _TamilGridActivityState extends State<TamilGridActivity> {
     );
   }
 
-  Widget _buildCategoryChip(String label, String category) {
+  Widget _buildCategoryChip(String label, String category, bool isEnabled) {
     final screenWidth = MediaQuery.of(context).size.width;
 
     // Get color based on category
@@ -1042,30 +1114,40 @@ class _TamilGridActivityState extends State<TamilGridActivity> {
     final borderRadius = (screenWidth * 0.02 * scaleFactor).clamp(7.0, 14.0);
     final borderWidth = (screenWidth * 0.003 * scaleFactor).clamp(0.8, 2.5);
 
-    return Container(
-      width: double.infinity,
-      height: containerHeight,
-      padding: padding,
-      decoration: BoxDecoration(
-        color: categoryColor.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(borderRadius),
-        border: Border.all(color: categoryColor, width: borderWidth),
-        boxShadow: [
-          BoxShadow(
-            color: categoryColor.withOpacity(0.1),
-            blurRadius: 3,
-            offset: const Offset(0, 1),
+    return Opacity(
+      opacity: isEnabled ? 1.0 : 0.4,
+      child: Container(
+        width: double.infinity,
+        height: containerHeight,
+        padding: padding,
+        decoration: BoxDecoration(
+          color: isEnabled
+              ? categoryColor.withOpacity(0.15)
+              : Colors.grey.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(borderRadius),
+          border: Border.all(
+            color: isEnabled ? categoryColor : Colors.grey.withOpacity(0.3),
+            width: borderWidth,
           ),
-        ],
-      ),
-      child: Center(
-        child: Text(
-          label,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: fontSize,
-            fontWeight: FontWeight.w600,
-            color: categoryColor,
+          boxShadow: isEnabled
+              ? [
+                  BoxShadow(
+                    color: categoryColor.withOpacity(0.1),
+                    blurRadius: 3,
+                    offset: const Offset(0, 1),
+                  ),
+                ]
+              : [],
+        ),
+        child: Center(
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: fontSize,
+              fontWeight: FontWeight.w600,
+              color: isEnabled ? categoryColor : Colors.grey,
+            ),
           ),
         ),
       ),
@@ -1086,6 +1168,7 @@ class _TamilGridActivityState extends State<TamilGridActivity> {
     List<String> letters,
     String category,
     double maxAvailableWidth,
+    bool isEnabled,
   ) {
     final screenWidth = MediaQuery.of(context).size.width;
 
@@ -1217,9 +1300,14 @@ class _TamilGridActivityState extends State<TamilGridActivity> {
               final correctCategory = correctAnswers[letter];
               final isCorrectCategory = category == correctCategory;
 
-              // Disable if wrong answer was shown and this is not the correct category
+              // Disable if:
+              // 1. Category is not present in question, OR
+              // 2. Wrong answer was shown and this is not the correct category
               // But allow unselection even if disabled
-              final isDisabled = _hasWrongAnswer && !isCorrectCategory;
+              final isRowDisabled =
+                  !isEnabled; // Row disabled if category not present
+              final isDisabled =
+                  isRowDisabled || (_hasWrongAnswer && !isCorrectCategory);
 
               // Get adaptive width for this specific letter
               final letterWidth = adjustedWidths[index];
@@ -1230,109 +1318,129 @@ class _TamilGridActivityState extends State<TamilGridActivity> {
                 ),
                 child: SizedBox(
                   width: letterWidth, // Adaptive width based on letter length
-                  child: InkWell(
-                    onTap: () {
-                      setState(() {
-                        if (isSelected) {
-                          // Always allow unselection
-                          userAnswers[key] = null;
-                        } else {
-                          // Only allow selection if not disabled
-                          if (!isDisabled) {
-                            _selectCategory(letter, index, category);
+                  child: Opacity(
+                    opacity: isRowDisabled
+                        ? 0.4
+                        : 1.0, // Match category chip opacity
+                    child: InkWell(
+                      onTap: () {
+                        setState(() {
+                          if (isSelected) {
+                            // Always allow unselection
+                            userAnswers[key] = null;
+                          } else {
+                            // Only allow selection if not disabled
+                            if (!isDisabled) {
+                              _selectCategory(letter, index, category);
+                            }
                           }
-                        }
-                      });
-                    },
-                    borderRadius: BorderRadius.circular(8),
-                    child: Container(
-                      width: letterWidth, // Use adaptive width for this letter
-                      height:
-                          rowHeight, // Match row height exactly for perfect alignment
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? categoryColor // Category color when selected
-                            : isDisabled
-                            ? Colors.grey.withOpacity(0.2) // Disabled color
-                            : Colors.white, // Clean white when not selected
-                        borderRadius: BorderRadius.circular(
-                          (screenWidth * 0.018 * scaleFactor).clamp(5.0, 10.0),
-                        ),
-                        border: Border.all(
-                          color: isSelected
-                              ? categoryColor // Category border when selected
+                        });
+                      },
+                      borderRadius: BorderRadius.circular(8),
+                      child: Container(
+                        width:
+                            letterWidth, // Use adaptive width for this letter
+                        height:
+                            rowHeight, // Match row height exactly for perfect alignment
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: isRowDisabled
+                              ? Colors
+                                    .white // Same as word container background when disabled
+                              : isSelected
+                              ? categoryColor // Category color when selected
                               : isDisabled
-                              ? Colors.grey.withOpacity(0.3) // Disabled border
-                              : const Color(
-                                  0xFFE0E0E0,
-                                ), // Simple grey border when not selected
-                          width: isSelected
-                              ? (screenWidth * 0.004 * scaleFactor).clamp(
-                                  1.2,
-                                  2.5,
-                                )
-                              : (screenWidth * 0.0025 * scaleFactor).clamp(
-                                  0.8,
-                                  1.5,
-                                ),
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: isSelected
-                                ? categoryColor.withOpacity(
-                                    0.3,
-                                  ) // Category shadow when selected
-                                : Colors.grey.withOpacity(
-                                    0.06,
-                                  ), // Light shadow when not selected
-                            blurRadius: isSelected
-                                ? (screenWidth * 0.012 * scaleFactor).clamp(
-                                    3.0,
-                                    7.0,
-                                  )
-                                : (screenWidth * 0.005 * scaleFactor).clamp(
-                                    1.5,
-                                    3.0,
-                                  ),
-                            offset: Offset(
-                              0,
-                              isSelected
-                                  ? (screenWidth * 0.006 * scaleFactor).clamp(
-                                      1.5,
-                                      3.5,
-                                    )
-                                  : (screenWidth * 0.0025 * scaleFactor).clamp(
-                                      0.8,
-                                      1.5,
-                                    ),
+                              ? Colors.grey.withOpacity(
+                                  0.2,
+                                ) // Disabled color (wrong answer)
+                              : Colors.white, // Clean white when not selected
+                          borderRadius: BorderRadius.circular(
+                            (screenWidth * 0.018 * scaleFactor).clamp(
+                              5.0,
+                              10.0,
                             ),
                           ),
-                        ],
-                      ),
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                          child: Text(
-                            letter,
-                            style: TextStyle(
-                              fontSize: fontSize,
-                              fontWeight: FontWeight.bold,
-                              color: isSelected
-                                  ? Colors
-                                        .white // White text when selected
-                                  : isDisabled
-                                  ? Colors.grey.withOpacity(
-                                      0.5,
-                                    ) // Disabled text
-                                  : const Color(
-                                      0xFF333333,
-                                    ), // Dark text when not selected
+                          border: Border.all(
+                            color: isRowDisabled
+                                ? const Color(
+                                    0xFFE0E0E0,
+                                  ) // Same as word container border when disabled
+                                : isSelected
+                                ? categoryColor // Category border when selected
+                                : isDisabled
+                                ? Colors.grey.withOpacity(
+                                    0.3,
+                                  ) // Disabled border (wrong answer)
+                                : const Color(
+                                    0xFFE0E0E0,
+                                  ), // Simple grey border when not selected
+                            width: isSelected
+                                ? (screenWidth * 0.004 * scaleFactor).clamp(
+                                    1.2,
+                                    2.5,
+                                  )
+                                : (screenWidth * 0.0025 * scaleFactor).clamp(
+                                    0.8,
+                                    1.5,
+                                  ),
+                          ),
+                          boxShadow: isRowDisabled
+                              ? [] // No shadow for disabled rows (like word container when disabled)
+                              : [
+                                  BoxShadow(
+                                    color: isSelected
+                                        ? categoryColor.withOpacity(
+                                            0.3,
+                                          ) // Category shadow when selected
+                                        : Colors.grey.withOpacity(
+                                            0.06,
+                                          ), // Light shadow when not selected
+                                    blurRadius: isSelected
+                                        ? (screenWidth * 0.012 * scaleFactor)
+                                              .clamp(3.0, 7.0)
+                                        : (screenWidth * 0.005 * scaleFactor)
+                                              .clamp(1.5, 3.0),
+                                    offset: Offset(
+                                      0,
+                                      isSelected
+                                          ? (screenWidth * 0.006 * scaleFactor)
+                                                .clamp(1.5, 3.5)
+                                          : (screenWidth * 0.0025 * scaleFactor)
+                                                .clamp(0.8, 1.5),
+                                    ),
+                                  ),
+                                ],
+                        ),
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 4.0,
                             ),
-                            textAlign: TextAlign.center,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                            child: Text(
+                              letter,
+                              style: TextStyle(
+                                fontSize: fontSize,
+                                fontWeight: FontWeight.bold,
+                                color: isRowDisabled
+                                    ? Colors.grey.withOpacity(
+                                        0.4,
+                                      ) // Uniform disabled text color
+                                    : isSelected
+                                    ? Colors
+                                          .white // White text when selected
+                                    : isDisabled
+                                    ? Colors.grey.withOpacity(
+                                        0.5,
+                                      ) // Disabled text (wrong answer)
+                                    : const Color(
+                                        0xFF333333,
+                                      ), // Dark text when not selected
+                              ),
+                              textAlign: TextAlign.center,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
                         ),
                       ),

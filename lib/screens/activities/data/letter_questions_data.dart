@@ -80,10 +80,39 @@ class LetterQuestionsData {
       correctAnswers: _generateCorrectAnswers(_splitTamilWord('பட்டாம்பூச்சி')),
     ),
     LetterQuestion(
-      word: 'கண்ணாடி',
-      image: 'https://www.shutterstock.com/image-vector/mirror-icon-cartoon-style-isolated-260nw-489791557.jpg',
-      letters: _splitTamilWord('கண்ணாடி'),
-      correctAnswers: _generateCorrectAnswers(_splitTamilWord('கண்ணாடி')),
+      word: 'கண்',
+      image:
+          'https://t3.ftcdn.net/jpg/01/51/72/28/360_F_151722868_zIEbEsHOVaD0gXG3nybnOYzeqoRCu0ij.jpg',
+      letters: _splitTamilWord('கண்'),
+      correctAnswers: _generateCorrectAnswers(_splitTamilWord('கண்')),
+    ),
+    LetterQuestion(
+      word: 'ஆண்',
+      image:
+          'https://png.pngtree.com/png-vector/20241228/ourmid/pngtree-male-avatar-with-glasses-short-brown-hair-sweater-vest-stack-of-png-image_14855389.png',
+      letters: _splitTamilWord('ஆண்'),
+      correctAnswers: _generateCorrectAnswers(_splitTamilWord('ஆண்')),
+    ),
+     LetterQuestion(
+      word: 'ஈ',
+      image:
+          'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQIA6tuFtQ35mwoAUmQzboOSCx1yYWiq5e1cfaxSsbZVCKFjU_ulUsLaOmKo8HDJnTYfhc&usqp=CAU',
+      letters: _splitTamilWord('ஈ'),
+      correctAnswers: _generateCorrectAnswers(_splitTamilWord('ஈ')),
+    ),
+
+    LetterQuestion(
+      word: 'அழகான',
+      image: 'https://www.shutterstock.com/image-vector/cute-cartoon-white-unicorn-tulips-600nw-2607553387.jpg',
+      letters: _splitTamilWord('அழகான'),
+      correctAnswers: _generateCorrectAnswers(_splitTamilWord('அழகான')),
+    ),
+    LetterQuestion(
+      word: 'வாடா',
+      image:
+          'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTFeG30pTC13Y4o-ayEHVSbA3uauJ-6MKbCywbjsDMTROXH5Swe_AgCsuEBhnZhjxWcF1M&usqp=CAU',
+      letters: _splitTamilWord('வாடா'),
+      correctAnswers: _generateCorrectAnswers(_splitTamilWord('வாடா')),
     ),
     LetterQuestion(
       word: 'கொடுக்கை',
